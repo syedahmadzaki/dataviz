@@ -1,7 +1,7 @@
 ---
-title: "About this blog"
+title: "More On This blog"
 description: |
-  Some additional details about the blog
+  This blog contains a collection of my data visualisation makeovers.
 ---
 
 ```{r setup, include=FALSE}

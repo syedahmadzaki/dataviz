@@ -1,13 +1,12 @@
 ---
-title: "Welcome to My Blog"
+title: "Welcome to My DataViz Makeover Page"
 description: |
-  Welcome to our new blog, My Blog. We hope you enjoy 
-  reading what we have to say!
+  Welcome to my humble abode, where we delve into data vizualisation makeovers. We hope you enjoy reading what we have to say!
 author:
-  - name: Nora Jones 
-    url: https://example.com/norajones
-    affiliation: Spacely Sprockets
-    affiliation_url: https://example.com/spacelysprokets
+  - name: Syed Ahmad Zaki
+    url: https://www.google.com/
+    affiliation: School of Computing and Information Systems, Singapore Management University
+    affiliation_url: https://scis.smu.edu.sg
 date: 05-24-2021
 output:
   distill::distill_article:

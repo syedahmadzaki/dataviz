@@ -1,0 +1,139 @@
+---
+title: "DataViz Makeover 1"
+description: |
+  Recasting Visualisation To Better Illuminate Underlying Insights 
+  (Using Data From Singapore’s Department Of Statistics)
+
+author:
+  - name: Syed Ahmad Zaki
+    url: https://www.google.com/
+date: 05-26-2021
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+```
+
+## 1.	Makeover Requirements
+###  1.1.	The Task
+a.	Critic the visualized graph with at least three points from each evaluation criterion (clarity and aesthetics) respectively
+b.	Suggest alternative graphical presentation to improve the current design
+i.	Proposed alternative data visualization must be in static form
+ii.	Proposed design would need to be sketched
+iii.	Support your design by describing the advantages or which part of the issue(s) your alternative design attempts to overcome
+c.	Use Tableau to design the proposed data visualization
+d.	Provide step-by-step description on how the data visualization was prepared
+e.	Describe three major observations revealed by the prepared data visualization
+
+### 1.2.	Deliverables
+a.	The write-up of the DataViz Makeover must be in distill or blogdown format, and is required to publish the write-up on Netlify
+b.	The DataViz Makeover must be prepared using Tableau Desktop. The final workbook must be uploaded onto Tableau Public
+
+## 2.	Original Visualisation and Its Perceived Objective
+The original visualization (shown below) showcases the merchandise trade of the top six trading countries across 2019 to 2020.
+
+![Figure 1: Original Data Visualisation](img/a.png)
+
+To better understand how best to recast this visualization, we must first understand the intent of the visualization. Alberto Cairo succinctly sums the intent up as what the graphic is for: what do you want people to see. He went to explain that one should begin not by designing the graphic but begin by writing a very long narrative that you want to tell.
+
+Our attempt on the narrative for the above visualization is as follows:
+
+*“The import and export fluctuations across our top six trading countries differ greatly between 2019 to 2020, as well as against the other top trading countries.”*
+
+To further illuminate the narrative, we propose questions that the visualization aims to answer:
+•	What are the import and export levels in each of the top six trading countries?  
+•	How do these import and export levels fluctuate over time?  
+•	Within the top six countries, who has the highest and lowest import and export levels respectively?  
+•	(Additional) Do these fluctuations coincide with any event?  
+
+## 3.	Critiquing Methodology
+
+We attempt to critique the above visualization on two criterions: clarity and aesthetics. [Ben Jones (2012)](https://dataremixed.com/2012/05/data-visualization-clarity-or-aesthetics) nicely captured these criterions within a two-by-two matrix. The ideal quadrant to be in is Quadrant I, where it is both clear and beautiful.
+
+![Figure 2: Data Visualization Matrix: Clarity vs Aesthetics](img/b.png)
+
+From a definition perspective, aesthetics refers to how pleasing the visualization is to the reader’s eye, while clarity refers to how clear and concise the story or the message behind the visualization is conveyed to the reader.
+
+## 4.	Critique of Visualisation
+
+
+## 5.	Alternative Design
+
+
+## 6.	Step-by-Step Guide
+### 6.1.	Data Preparation
+The original raw data reside within the following links: [Merchandise Trade Webpage](https://www.singstat.gov.sg/find-data/search-by-theme/trade-and-investment/merchandise-trade/latest-data) and [Merchandise Trade Excel Download](https://www.tablebuilder.singstat.gov.sg/publicfacing/downloadMultiple.action?id=106)
+
+The Excel file contains the following three sheets:
+
+```{r}
+Sheet_Name <- c("Content","T1","T2")
+Description <- c("Explaining sheets T1 and T2 contain the “Merchandise Imports By Region/Market, Monthly” and “Merchandise Exports By Region/Market, Monthly” respectively",
+                 "Contains the monthly merchandise imports by country/region in dollars (thousands for individual countries or millions for regions) spanning Jan-1976 to Apr-2021",
+                 "Contains the monthly merchandise exports by country/region in dollars (thousands for individual countries or millions for regions) spanning Jan-1976 to Apr-2021")
+figure3 <- data.frame(Sheet_Name,Description)
+knitr::kable(figure3, booktabs = TRUE,
+  caption = 'Contents of Merchandise Trade Excel File')
+```
+
+We will now utilize Microsoft Excel and Tableau Desktop for the data preparation and visualization respectively.
+
+```{r}
+No. <- c(1:15)
+Data_Prep_Steps <- c("Using Microsoft Excel file, open the raw data (outputFile.xlsx).",
+           "In spreadsheet T1, remove the first 5 rows. Repeat step in spreadsheet T2.",
+           "Remove rows 2 to 8 in both spreadsheet T1 and T2.",
+           "Remove rows 115 to 128 in spreadsheet T1. Similarly, remove rows 87 to 100 in T2.",
+           "Since the visualization was based on data from 2019 onwards, remove columns B to SW in both spreadsheet T1 and T2.",
+           "Since the dates in row 1 are not in proper date format, reformat dates to the first of the month from Jan-2019 onwards. Similarly, do this step on spreadsheet T2. Then rename cell A1 to Country.",
+           "Insert a column in column B and name it “Type”. Then fill the column with the value “Import”.Insert a similar column in T2 but fill the column with the value “Export”.",
+           "From the Data ribbon, select the button “From Table/Range”.",
+           "Ensure that $A$1:$AD$114 is selected and click OK. A Power Query Editor program will then launch.",
+           "Highlight the first two columns (Country and Type), and then within the Transform ribbon, select Unpivot Other Columns.",
+           "Rename the third and fourth column to Period and Trade_Amt.",
+           "To load the results back into Excel, within the Home (tab), select Close & Load.",
+           "To only extract the country name in the first column, insert a column and then use the following formula: \"=TRIM(LEFT([@Country],SEARCH(\"(\",[@Country])-1))\". To keep these values, copy and paste back these same values only.",
+           "Remove column A with the old values. Rename the header of the latest column A to Country.",
+           "Repeat steps 8 to 14 for sheet T2.")
+Screenshots <- c("img/1.png",
+                 "img/2.png",
+                 "img/3.png",
+                 "img/4.png",
+                 "img/5.png",
+                 "img/6.png",
+                 "img/7.png",
+                 "img/8.png",
+                 "img/9.png",
+                 "img/10.png",
+                 "img/11.png",
+                 "img/12.png",
+                 "img/13.png",
+                 "img/14.png",
+                 "img/15.png")
+
+figure4 <- data.frame(No.,Data_Prep_Steps,Screenshots)
+
+# Add appropriate rmarkdown tagging
+figure4$Screenshots = sprintf("![](%s)", figure4$Screenshots)
+
+knitr::kable(figure4, booktabs = TRUE)
+
+```
+
+
+
+
+
+
+
+
+
+
+

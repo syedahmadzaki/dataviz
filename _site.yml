@@ -1,7 +1,7 @@
 name: "dataviz"
-title: "My Blog"
+title: "DataViz Makeovers"
 description: |
-  My Blog
+  A Collection of Data Visualization Makeovers
 output_dir: "_site"
 navbar:
   right:
