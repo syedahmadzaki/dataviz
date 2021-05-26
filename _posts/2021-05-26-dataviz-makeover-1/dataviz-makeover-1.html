@@ -116,7 +116,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["dataviz-makeover-1_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-1_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-1_files/distill-2.2.21/template.v2.js","dataviz-makeover-1_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-1_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-1_files/popper-2.6.0/popper.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-1_files/webcomponents-2.0.0/webcomponents.js","img/1.png","img/10.png","img/11.png","img/12.png","img/13.png","img/14.png","img/15.png","img/2.png","img/3.png","img/4.png","img/5.png","img/6.png","img/7.png","img/8.png","img/9.png","img/a.png","img/b.png"]}
+  {"type":"character","attributes":{},"value":["dataviz-makeover-1_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-1_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-1_files/distill-2.2.21/template.v2.js","dataviz-makeover-1_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-1_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-1_files/popper-2.6.0/popper.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-1_files/webcomponents-2.0.0/webcomponents.js","img/1.png","img/10.png","img/11.png","img/12.png","img/13.png","img/14.png","img/15.png","img/16.png","img/17.png","img/18.png","img/19.png","img/2.png","img/20.png","img/21.png","img/22.png","img/23.png","img/24.png","img/25.png","img/26.png","img/27.png","img/28.png","img/29.png","img/3.png","img/30.png","img/31.png","img/32.png","img/33.png","img/34.png","img/35.png","img/36.png","img/37.png","img/38.png","img/39.png","img/4.png","img/40.png","img/41.png","img/42.png","img/5.png","img/6.png","img/7.png","img/8.png","img/9.png","img/a.png","img/b.png","img/import-export.png"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
   <!--/radix_placeholder_navigation_in_header-->
@@ -1504,10 +1504,11 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <figure>
 <img src="img/a.png" alt="Figure 1: Original Data Visualisation" /><figcaption aria-hidden="true">Figure 1: Original Data Visualisation</figcaption>
 </figure>
-<p>To better understand how best to recast this visualization, we must first understand the intent of the visualization. Alberto Cairo succinctly sums the intent up as what the graphic is for: what do you want people to see. He went to explain that one should begin not by designing the graphic but begin by writing a very long narrative that you want to tell.</p>
+<p>To better understand how best to recast this visualization, we must first understand the intent of the visualization. <a href="https://www.visme.co/make-information-beautiful/alberto-cairo-information-graphics/">Alberto Cairo</a> succinctly sums up the actual intent of the graphic: <em>“what is it that you want people to see”</em>. He went to explain that one should begin not by designing the graphic first but rather, begin by “writing a very long narrative that you want to tell”.</p>
 <p>Our attempt on the narrative for the above visualization is as follows:</p>
-<p><em>“The import and export fluctuations across our top six trading countries differ greatly between 2019 to 2020, as well as against the other top trading countries.”</em></p>
-<p>To further illuminate the narrative, we propose questions that the visualization aims to answer: • What are the import and export levels in each of the top six trading countries?<br />
+<p><strong><em>“The import and export fluctuations within each of our top six trading countries differ greatly between 2019 to 2020, as well as against other top trading countries.”</em></strong></p>
+<p>To further illuminate the narrative, we propose the following questions that the visualization aims to answer:<br />
+• What are the import and export levels in each of the top six trading countries?<br />
 • How do these import and export levels fluctuate over time?<br />
 • Within the top six countries, who has the highest and lowest import and export levels respectively?<br />
 • (Additional) Do these fluctuations coincide with any event?</p>
@@ -1518,7 +1519,41 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 </figure>
 <p>From a definition perspective, aesthetics refers to how pleasing the visualization is to the reader’s eye, while clarity refers to how clear and concise the story or the message behind the visualization is conveyed to the reader.</p>
 <h2 id="critique-of-visualisation">4. Critique of Visualisation</h2>
+<p>Our critique of the above visualisation will be based on the earlier two criterions.</p>
+<h3 id="clarity">4.1. Clarity:</h3>
+<p>• <strong>Inconsistent vertical scale values intra and inter-countries</strong><br />
+The vertical scales for both primary and secondary axis denoting the export and import levels are inconsistent with each other for all six countries. For instance in Hong Kong, the export levels are in millions, whereas the import levels are in hundred thousands.</p>
+<p>• <strong>Unmatched vertical scale values intra and inter-countries</strong><br />
+Even when the scales are in the millions, as shown in the Japan, the export and import levels don’t match up with each other. In the same Japan example, export seems to have a higher scale level than its import.</p>
+<p>• <strong>Inconsistent horizontal time scale values intra and inter-countries</strong><br />
+The horizontal time scale values are inconsistent for Japan, as compared to the rest of the countries. Japan’s horizontal time scale only showcases the months of 2020, whereas the other five countries showcases the months of both 2019 and 2020.</p>
+<p>• <strong>Unclear order of top six countries</strong><br />
+There is no clear explanation on how the countries are arranged, and whether its order or arrangement takes into account the level of merchandise trade with Singapore. Can it be considered that HK is a more significant contributor of merchandise trade to Singapore, than US, solely based on its top-left position within the visualisation?</p>
+<h3 id="aesthetics">4.2. Aesthetics:</h3>
+<p>• <strong>Legend shows two colour schemes, but visualisation has three</strong><br />
+The legend clearly asssigns two distinct colours to export and import respectively, but the graph showcases a third colour. This third colour is the result of the overlapping area between both the export and import portions. Having a third undefined colour forces the reader to decipher for him/herself on what it actually means.</p>
+<p>• <strong>Repeating scale names</strong><br />
+The vertical scales of Export and Import, as well the horizontal scales of ‘Month of Period’ is repeated six times throughout the whole visualisation.</p>
+<p>• <strong>Differing width</strong><br />
+Excluding Japan which has only a 2020 time period, the rest of the countries with a 2019-2020 time period have differing graph widths. Hong Kong has a narrower graph width as compared to Malaysia, which is located just below it.</p>
+<p>• <strong>Legend takes up too much valuable real estate</strong><br />
+Since the legend position is situated on the top right corner of the visualisation, the space below it on the right side of the visualisation is very much wasted. The visualisation could have been made wider, had the legend been situated either below or above.</p>
 <h2 id="alternative-design">5. Alternative Design</h2>
+<h3 id="suggested-improvements">5.1. Suggested Improvements</h3>
+<p>The use of an area chart in the original visualisation is ideal, given the fluctuations between the export and import levels across the time period. As such, the following suggestions will be mere tweaks to the original visualisation:<br />
+• Consistent and matching vertical and horizontal scales<br />
+• Countries ordered in terms of overall merchandise trade<br />
+• Keep to two colour schemes<br />
+• Reduce repeated scale names<br />
+• Consistent chart widths<br />
+• Reposition or replace legend</p>
+<h3 id="inspiration">5.2. Inspiration</h3>
+<p>Reusing the same area charts, we now scour everywhere for great inspiration!</p>
+<p>Taking a leaf from history, the visualisation on <a href="https://en.wikipedia.org/wiki/William_Playfair">Commercial and Political Atlas by William Playfair</a> intuitively showcases the difference in levels within the area chart. The use of different colour schemes allow the reader to understand which areas have higher amounts than another. It helps that this inspired visualisation is also based on exports and imports, similar to this makeover!</p>
+<figure>
+<img src="img/import-export.png" alt="Figure 3: Historical Visualisation on Export and Import Levels Between England and Two Other Countries (Denmark and Norway)" /><figcaption aria-hidden="true">Figure 3: Historical Visualisation on Export and Import Levels Between England and Two Other Countries (Denmark and Norway)</figcaption>
+</figure>
+<h3 id="sketch">5.3. Sketch</h3>
 <h2 id="step-by-step-guide">6. Step-by-Step Guide</h2>
 <h3 id="data-preparation">6.1. Data Preparation</h3>
 <p>The original raw data reside within the following links: <a href="https://www.singstat.gov.sg/find-data/search-by-theme/trade-and-investment/merchandise-trade/latest-data">Merchandise Trade Webpage</a> and <a href="https://www.tablebuilder.singstat.gov.sg/publicfacing/downloadMultiple.action?id=106">Merchandise Trade Excel Download</a></p>
@@ -1566,16 +1601,19 @@ Contains the monthly merchandise exports by country/region in dollars (thousands
 </tbody>
 </table>
 </div>
-<p>We will now utilize Microsoft Excel and Tableau Desktop for the data preparation and visualization respectively.</p>
+<p>Microsoft Excel will be utilised first for the following data preparation steps.</p>
 <div class="layout-chunk" data-layout="l-body">
 <table>
+<caption>
+<span id="tab:unnamed-chunk-2">Table 2: </span>Data Preparation Steps Using MS Excel
+</caption>
 <thead>
 <tr>
 <th style="text-align:right;">
 No. 
 </th>
 <th style="text-align:left;">
-Data_Prep_Steps
+Steps
 </th>
 <th style="text-align:left;">
 Screenshots
@@ -1748,9 +1786,335 @@ Repeat steps 8 to 14 for sheet T2.
 <img src="img/15.png" />
 </td>
 </tr>
+<tr>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:left;">
+To create a consolidated file, copy and combine the transformed tables in steps 14 and 15 into a single separate sheet.
+</td>
+<td style="text-align:left;">
+<img src="img/16.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:left;">
+Uncheck the six countries (Hong Kong, Mainland China, Japan, Malaysia, Taiwan and US) from the Country filter and delete the rows. Then remove filter to populate the table with only the six countries. Save this file as “Consol”. This file will then be used for our visualisation on Tableau Desktop.
+</td>
+<td style="text-align:left;">
+<img src="img/17.png" />
+</td>
+</tr>
 </tbody>
 </table>
 </div>
+<h3 id="data-visualisation">6.2. Data Visualisation</h3>
+<p>Having prepared the data, we will now utilize Tableau Desktop for the eventual visualisation.</p>
+<div class="layout-chunk" data-layout="l-body">
+<table>
+<caption>
+<span id="tab:unnamed-chunk-3">Table 3: </span>Data Visualisation Steps Using Tableau Desktop
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+No. 
+</th>
+<th style="text-align:left;">
+Steps
+</th>
+<th style="text-align:left;">
+Screenshots
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:left;">
+Open Tableau Desktop. Then connect to MS Excel and import the earlier Consol file.
+</td>
+<td style="text-align:left;">
+<img src="img/18.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:left;">
+From the bottom bar, select Sheet 1. Then drag Country and Period to Columns, and Trade Amt to Rows.
+</td>
+<td style="text-align:left;">
+<img src="img/19.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:left;">
+On the left Data bar, select the dropdown menu for Period. Change Data Type to Date.
+</td>
+<td style="text-align:left;">
+<img src="img/20.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:left;">
+From the Columns bar at the top of the screen, select the dropdown menu for Period. Select Month-Year.
+</td>
+<td style="text-align:left;">
+<img src="img/21.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:left;">
+Drag Type to Colour Marks
+</td>
+<td style="text-align:left;">
+<img src="img/22.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:left;">
+Within the Marks dropdown menu, select Area.
+</td>
+<td style="text-align:left;">
+<img src="img/23.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:left;">
+Within the Colour Marks, select 100% Opacity.
+</td>
+<td style="text-align:left;">
+<img src="img/24.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:left;">
+Since the Export and Import values should not be stacked on top of each other, we will separate them. Select Analysis from the toolbar, then select Stack Marks, then select Off
+</td>
+<td style="text-align:left;">
+<img src="img/25.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+9
+</td>
+<td style="text-align:left;">
+To know the lowest level between Export and Import for each month, a calculated field will need to be first created. Select Trade Amt from the left Data bar, and create a Calculated Field
+</td>
+<td style="text-align:left;">
+<img src="img/26.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:left;">
+Name this calculated field, Lowest_Level. Then use the following formula: {EXCLUDE [Type]:MIN([Trade Amt])}
+</td>
+<td style="text-align:left;">
+<img src="img/27.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+11
+</td>
+<td style="text-align:left;">
+Drag the newly created Lowest_Level field to the vertical axis of Trade Amt. An icon with two verical bars should appear on your cursor.
+</td>
+<td style="text-align:left;">
+<img src="img/28.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:left;">
+Drag Measure Names from Rows at the top onto Detail Marks.
+</td>
+<td style="text-align:left;">
+<img src="img/29.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:left;">
+Click on the Detail Marks icon beside Measure Names and select Colour
+</td>
+<td style="text-align:left;">
+<img src="img/30.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+14
+</td>
+<td style="text-align:left;">
+Select Measure Names in the Marks column, then select Colour marks and Edit Colours. Select the colour White on both Lowest_Level fields
+</td>
+<td style="text-align:left;">
+<img src="img/31.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+15
+</td>
+<td style="text-align:left;">
+Drag Trade Amt to Rows and change Sum Trade Amt to Line.
+</td>
+<td style="text-align:left;">
+<img src="img/32.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+16
+</td>
+<td style="text-align:left;">
+Remove Measure Names from the Marks section, by dragging it out of the window.
+</td>
+<td style="text-align:left;">
+<img src="img/33.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:left;">
+Right-click on Trade Amt and select Dual Axis.
+</td>
+<td style="text-align:left;">
+<img src="img/34.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:left;">
+Right-click on secondary axis, and select both Synchronize Axis and hide Show Header.
+</td>
+<td style="text-align:left;">
+<img src="img/35.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+19
+</td>
+<td style="text-align:left;">
+Select Country at the top and Hide Fields Labels for Columns.
+</td>
+<td style="text-align:left;">
+<img src="img/36.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+20
+</td>
+<td style="text-align:left;">
+Select Sheet 1 at the top and select Hide Title.
+</td>
+<td style="text-align:left;">
+<img src="img/37.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+21
+</td>
+<td style="text-align:left;">
+To remove the horizontal grid lines, select Format and choose Lines. Then within the Format Lines window, select None for Grid Lines.
+</td>
+<td style="text-align:left;">
+<img src="img/38.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:left;">
+Reorder the countries by dragging the country names into their respective positions as per the image.
+</td>
+<td style="text-align:left;">
+<img src="img/39.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+23
+</td>
+<td style="text-align:left;">
+Rename the Y-axis to Merchandise Trade Amt by right-clicking on the Y-axis and select Edit Axis.
+</td>
+<td style="text-align:left;">
+<img src="img/40.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+24
+</td>
+<td style="text-align:left;">
+Right-click on the horizontal time axis and select Edit Axis. Within the Tick Marks tab, select Fixed major tick marks, input 1/1/2019 as the tick origin and set the Interval at 2.
+</td>
+<td style="text-align:left;">
+<img src="img/41.png" />
+</td>
+</tr>
+<tr>
+<td style="text-align:right;">
+25
+</td>
+<td style="text-align:left;">
+Then within the General tab, remove Month of Period from the Axis Title. Click OK. Then rename Sheet 1 to Viz and save your work.
+</td>
+<td style="text-align:left;">
+<img src="img/42.png" />
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h3 id="creating-the-static-dashboard">6.3. Creating the Static Dashboard</h3>
+<p>Having visualised the data, we will now put the final touches on a dashboard.</p>
+<h2 id="final-visualisation">7. Final Visualisation</h2>
+<h3 id="visualisation-snapshot">7.1. Visualisation Snapshot</h3>
+<h3 id="derived-insights">7.2. Derived Insights</h3>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->

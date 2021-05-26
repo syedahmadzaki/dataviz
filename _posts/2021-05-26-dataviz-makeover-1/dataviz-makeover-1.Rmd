@@ -41,13 +41,13 @@ The original visualization (shown below) showcases the merchandise trade of the 
 
 ![Figure 1: Original Data Visualisation](img/a.png)
 
-To better understand how best to recast this visualization, we must first understand the intent of the visualization. Alberto Cairo succinctly sums the intent up as what the graphic is for: what do you want people to see. He went to explain that one should begin not by designing the graphic but begin by writing a very long narrative that you want to tell.
+To better understand how best to recast this visualization, we must first understand the intent of the visualization. [Alberto Cairo](https://www.visme.co/make-information-beautiful/alberto-cairo-information-graphics/) succinctly sums up the actual intent of the graphic: *"what is it that you want people to see"*. He went to explain that one should begin not by designing the graphic first but rather, begin by "writing a very long narrative that you want to tell".
 
 Our attempt on the narrative for the above visualization is as follows:
 
-*“The import and export fluctuations across our top six trading countries differ greatly between 2019 to 2020, as well as against the other top trading countries.”*
+***“The import and export fluctuations within each of our top six trading countries differ greatly between 2019 to 2020, as well as against other top trading countries.”***
 
-To further illuminate the narrative, we propose questions that the visualization aims to answer:
+To further illuminate the narrative, we propose the following questions that the visualization aims to answer:  
 •	What are the import and export levels in each of the top six trading countries?  
 •	How do these import and export levels fluctuate over time?  
 •	Within the top six countries, who has the highest and lowest import and export levels respectively?  
@@ -62,9 +62,54 @@ We attempt to critique the above visualization on two criterions: clarity and ae
 From a definition perspective, aesthetics refers to how pleasing the visualization is to the reader’s eye, while clarity refers to how clear and concise the story or the message behind the visualization is conveyed to the reader.
 
 ## 4.	Critique of Visualisation
+Our critique of the above visualisation will be based on the earlier two criterions.
+
+### 4.1.	Clarity:
+•	**Inconsistent vertical scale values intra and inter-countries**  
+The vertical scales for both primary and secondary axis denoting the export and import levels are inconsistent with each other for all six countries. For instance in Hong Kong, the export levels are in millions, whereas the import levels are in hundred thousands.   
+
+•	**Unmatched vertical scale values intra and inter-countries**  
+Even when the scales are in the millions, as shown in the Japan, the export and import levels don't match up with each other. In the same Japan example, export seems to have a higher scale level than its import.  
+
+•	**Inconsistent horizontal time scale values intra and inter-countries**  
+The horizontal time scale values are inconsistent for Japan, as compared to the rest of the countries. Japan's horizontal time scale only showcases the months of 2020, whereas the other five countries showcases the months of both 2019 and 2020.
+
+•	**Unclear order of top six countries**   
+There is no clear explanation on how the countries are arranged, and whether its order or arrangement takes into account the level of merchandise trade with Singapore. Can it be considered that HK is a more significant contributor of merchandise trade to Singapore, than US, solely based on its top-left position within the visualisation?  
+
+
+### 4.2.	Aesthetics:
+•	**Legend shows two colour schemes, but visualisation has three**  
+The legend clearly asssigns two distinct colours to export and import respectively, but the graph showcases a third colour. This third colour is the result of the overlapping area between both the export and import portions. Having a third undefined colour forces the reader to decipher for him/herself on what it actually means.  
+
+•	**Repeating scale names**  
+The vertical scales of Export and Import, as well the horizontal scales of 'Month of Period' is repeated six times throughout the whole visualisation.  
+
+•	**Differing width**   
+Excluding Japan which has only a 2020 time period, the rest of the countries with a 2019-2020 time period have differing graph widths. Hong Kong has a narrower graph width as compared to Malaysia, which is located just below it.  
+
+•	**Legend takes up too much valuable real estate**   
+Since the legend position is situated on the top right corner of the visualisation, the space below it on the right side of the visualisation is very much wasted. The visualisation could have been made wider, had the legend been situated either below or above.   
 
 
 ## 5.	Alternative Design
+### 5.1.	Suggested Improvements  
+The use of an area chart in the original visualisation is ideal, given the fluctuations between the export and import levels across the time period. As such, the following suggestions will be mere tweaks to the original visualisation:  
+•	Consistent and matching vertical and horizontal scales   
+•	Countries ordered in terms of overall merchandise trade   
+•	Keep to two colour schemes   
+•	Reduce repeated scale names   
+•	Consistent chart widths   
+•	Reposition or replace legend   
+
+### 5.2.	Inspiration  
+Reusing the same area charts, we now scour everywhere for great inspiration!
+
+Taking a leaf from history, the visualisation on [Commercial and Political Atlas by William Playfair](https://en.wikipedia.org/wiki/William_Playfair) intuitively showcases the difference in levels within the area chart. The use of different colour schemes allow the reader to understand which areas have higher amounts than another. It helps that this inspired visualisation is also based on exports and imports, similar to this makeover!
+
+![Figure 3: Historical Visualisation on Export and Import Levels Between England and Two Other Countries (Denmark and Norway)](img/import-export.png)
+
+### 5.3.	Sketch  
 
 
 ## 6.	Step-by-Step Guide
@@ -78,16 +123,18 @@ Sheet_Name <- c("Content","T1","T2")
 Description <- c("Explaining sheets T1 and T2 contain the “Merchandise Imports By Region/Market, Monthly” and “Merchandise Exports By Region/Market, Monthly” respectively",
                  "Contains the monthly merchandise imports by country/region in dollars (thousands for individual countries or millions for regions) spanning Jan-1976 to Apr-2021",
                  "Contains the monthly merchandise exports by country/region in dollars (thousands for individual countries or millions for regions) spanning Jan-1976 to Apr-2021")
-figure3 <- data.frame(Sheet_Name,Description)
-knitr::kable(figure3, booktabs = TRUE,
+figure4 <- data.frame(Sheet_Name,Description)
+knitr::kable(figure4, booktabs = TRUE,
   caption = 'Contents of Merchandise Trade Excel File')
 ```
 
-We will now utilize Microsoft Excel and Tableau Desktop for the data preparation and visualization respectively.
+
+Microsoft Excel will be utilised first for the following data preparation steps.  
+
 
 ```{r}
-No. <- c(1:15)
-Data_Prep_Steps <- c("Using Microsoft Excel file, open the raw data (outputFile.xlsx).",
+No. <- c(1:17)
+Steps <- c("Using Microsoft Excel file, open the raw data (outputFile.xlsx).",
            "In spreadsheet T1, remove the first 5 rows. Repeat step in spreadsheet T2.",
            "Remove rows 2 to 8 in both spreadsheet T1 and T2.",
            "Remove rows 115 to 128 in spreadsheet T1. Similarly, remove rows 87 to 100 in T2.",
@@ -101,7 +148,9 @@ Data_Prep_Steps <- c("Using Microsoft Excel file, open the raw data (outputFile.
            "To load the results back into Excel, within the Home (tab), select Close & Load.",
            "To only extract the country name in the first column, insert a column and then use the following formula: \"=TRIM(LEFT([@Country],SEARCH(\"(\",[@Country])-1))\". To keep these values, copy and paste back these same values only.",
            "Remove column A with the old values. Rename the header of the latest column A to Country.",
-           "Repeat steps 8 to 14 for sheet T2.")
+           "Repeat steps 8 to 14 for sheet T2.",
+           "To create a consolidated file, copy and combine the transformed tables in steps 14 and 15 into a single separate sheet.",
+           "Uncheck the six countries (Hong Kong, Mainland China, Japan, Malaysia, Taiwan and US) from the Country filter and delete the rows. Then remove filter to populate the table with only the six countries. Save this file as \"Consol\". This file will then be used for our visualisation on Tableau Desktop.")
 Screenshots <- c("img/1.png",
                  "img/2.png",
                  "img/3.png",
@@ -116,24 +165,97 @@ Screenshots <- c("img/1.png",
                  "img/12.png",
                  "img/13.png",
                  "img/14.png",
-                 "img/15.png")
+                 "img/15.png",
+                 "img/16.png",
+                 "img/17.png")
 
-figure4 <- data.frame(No.,Data_Prep_Steps,Screenshots)
+figure4 <- data.frame(No.,Steps,Screenshots)
 
 # Add appropriate rmarkdown tagging
 figure4$Screenshots = sprintf("![](%s)", figure4$Screenshots)
 
-knitr::kable(figure4, booktabs = TRUE)
+knitr::kable(figure4, booktabs = TRUE,
+  caption = 'Data Preparation Steps Using MS Excel')
 
 ```
 
 
+### 6.2.	Data Visualisation
+Having prepared the data, we will now utilize Tableau Desktop for the eventual visualisation.  
 
 
+```{r}
+No. <- c(1:25)
+Steps <- c("Open Tableau Desktop. Then connect to MS Excel and import the earlier Consol file.",
+           "From the bottom bar, select Sheet 1. Then drag Country and Period to Columns, and Trade Amt to Rows.",
+           "On the left Data bar, select the dropdown menu for Period. Change Data Type to Date.",
+           "From the Columns bar at the top of the screen, select the dropdown menu for Period. Select Month-Year.",
+           "Drag Type to Colour Marks",
+           "Within the Marks dropdown menu, select Area.",
+           "Within the Colour Marks, select 100% Opacity.",
+           "Since the Export and Import values should not be stacked on top of each other, we will separate them. Select Analysis from the toolbar, then select Stack Marks, then select Off",
+           "To know the lowest level between Export and Import for each month, a calculated field will need to be first created. Select Trade Amt from the left Data bar, and create a Calculated Field",
+           "Name this calculated field, Lowest_Level. Then use the following formula: {EXCLUDE [Type]:MIN([Trade Amt])}",
+           "Drag the newly created Lowest_Level field to the vertical axis of Trade Amt. An icon with two verical bars should appear on your cursor.",
+           "Drag Measure Names from Rows at the top onto Detail Marks.",
+           "Click on the Detail Marks icon beside Measure Names and select Colour",
+           "Select Measure Names in the Marks column, then select Colour marks and Edit Colours. Select the colour White on both Lowest_Level fields",
+           "Drag Trade Amt to Rows and change Sum Trade Amt to Line.",
+           "Remove Measure Names from the Marks section, by dragging it out of the window.",
+           "Right-click on Trade Amt and select Dual Axis.",
+           "Right-click on secondary axis, and select both Synchronize Axis and hide Show Header.",
+           "Select Country at the top and Hide Fields Labels for Columns.",
+           "Select Sheet 1 at the top and select Hide Title.",
+           "To remove the horizontal grid lines, select Format and choose Lines. Then within the Format Lines window, select None for Grid Lines.",
+           "Reorder the countries by dragging the country names into their respective positions as per the image.",
+           "Rename the Y-axis to Merchandise Trade Amt by right-clicking on the Y-axis and select Edit Axis.",
+           "Right-click on the horizontal time axis and select Edit Axis. Within the Tick Marks tab, select Fixed major tick marks, input 1/1/2019 as the tick origin and set the Interval at 2.",
+           "Then within the General tab, remove Month of Period from the Axis Title. Click OK. Then rename Sheet 1 to Viz and save your work.")
+Screenshots <- c("img/18.png",
+                 "img/19.png",
+                 "img/20.png",
+                 "img/21.png",
+                 "img/22.png",
+                 "img/23.png",
+                 "img/24.png",
+                 "img/25.png",
+                 "img/26.png",
+                 "img/27.png",
+                 "img/28.png",
+                 "img/29.png",
+                 "img/30.png",
+                 "img/31.png",
+                 "img/32.png",
+                 "img/33.png",
+                 "img/34.png",
+                 "img/35.png",
+                 "img/36.png",
+                 "img/37.png",
+                 "img/38.png",
+                 "img/39.png",
+                 "img/40.png",
+                 "img/41.png",
+                 "img/42.png")
+
+figure4 <- data.frame(No.,Steps,Screenshots)
+
+# Add appropriate rmarkdown tagging
+figure4$Screenshots = sprintf("![](%s)", figure4$Screenshots)
+
+knitr::kable(figure4, booktabs = TRUE,
+  caption = 'Data Visualisation Steps Using Tableau Desktop')
+
+```
+
+### 6.3.	Creating the Static Dashboard
+Having visualised the data, we will now put the final touches on a dashboard.  
 
 
+## 7.	Final Visualisation   
+### 7.1.	Visualisation Snapshot   
 
 
+### 7.2.	Derived Insights      
 
 
 
