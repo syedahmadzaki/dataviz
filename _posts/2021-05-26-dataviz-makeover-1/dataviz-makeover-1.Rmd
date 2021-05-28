@@ -103,7 +103,7 @@ The use of an area chart in the original visualisation is ideal, given the fluct
 •	Reposition or replace legend   
 •	Presence of a header/sub-header indicating the storyline of the visualisation (with leading commentaries on visualisation itself)   
 
-### 5.2.	Inspiration  
+### 5.2.	Finding Inspiration  
 Reusing the same area charts, we now scour everywhere for great inspiration!
 
 Taking a leaf from history, the visualisation on [Commercial and Political Atlas by William Playfair](https://en.wikipedia.org/wiki/William_Playfair) intuitively showcases the difference in levels within the area chart. The use of different colour schemes allow the reader to understand which areas have higher amounts than another. Though it only uses one area chart, it helps that this inspired visualisation is also based on exports and imports, similar to this makeover!
