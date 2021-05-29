@@ -117,7 +117,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["dataviz-makeover-1_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-1_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-1_files/distill-2.2.21/template.v2.js","dataviz-makeover-1_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-1_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-1_files/popper-2.6.0/popper.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-1_files/webcomponents-2.0.0/webcomponents.js","img/1.png","img/10.png","img/11.png","img/12.png","img/13.png","img/14.png","img/15.png","img/16.png","img/17.png","img/17a.png","img/18.png","img/19.png","img/2.png","img/20.png","img/21.png","img/22.png","img/23.png","img/24.png","img/25.png","img/26.png","img/27.png","img/28.png","img/29.png","img/3.png","img/30.png","img/31.png","img/32.png","img/33.png","img/34.png","img/35.png","img/36.png","img/37.png","img/38.png","img/39.png","img/4.png","img/40.png","img/41.png","img/42.png","img/43.png","img/44.png","img/45.png","img/46.png","img/47.png","img/48.png","img/49.png","img/5.png","img/50.png","img/51.png","img/52.png","img/53.png","img/54.png","img/55.png","img/55a.png","img/56.png","img/6.png","img/7.png","img/8.png","img/9.png","img/a.png","img/b.png","img/import-export.png","img/sketch.png","img/tableau1.png"]}
+  {"type":"character","attributes":{},"value":["dataviz-makeover-1_files/anchor-4.2.2/anchor.min.js","dataviz-makeover-1_files/bowser-1.9.3/bowser.min.js","dataviz-makeover-1_files/distill-2.2.21/template.v2.js","dataviz-makeover-1_files/header-attrs-2.8/header-attrs.js","dataviz-makeover-1_files/jquery-1.11.3/jquery.min.js","dataviz-makeover-1_files/popper-2.6.0/popper.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-bundle.umd.min.js","dataviz-makeover-1_files/tippy-6.2.7/tippy-light-border.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.css","dataviz-makeover-1_files/tippy-6.2.7/tippy.umd.min.js","dataviz-makeover-1_files/webcomponents-2.0.0/webcomponents.js","img/1.png","img/10.png","img/11.png","img/12.png","img/13.png","img/14.png","img/15.png","img/16.png","img/17.png","img/18.png","img/19.png","img/2.png","img/20.png","img/21.png","img/22.png","img/23.png","img/24.png","img/25.png","img/26.png","img/27.png","img/28.png","img/29.png","img/3.png","img/30.png","img/31.png","img/32.png","img/33.png","img/34.png","img/35.png","img/36.png","img/37.png","img/38.png","img/39.png","img/4.png","img/40.png","img/41.png","img/42.png","img/43.png","img/44.png","img/45.png","img/46.png","img/47.png","img/48.png","img/49.png","img/5.png","img/50.png","img/51.png","img/52.png","img/53.png","img/54.png","img/55.png","img/55a.png","img/56.png","img/6.png","img/7.png","img/8.png","img/9.png","img/a.png","img/b.png","img/import-export.png","img/sketch.jpeg","img/tableau1.png"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
 <meta name="distill:offset" content="../.."/>
@@ -2178,7 +2178,7 @@ Since the legend position is situated on the top right corner of the visualisati
 <h3 id="sketch">5.3. Sketch</h3>
 <p>The following sketch strives to find common ground between the original visualisation and its critiques, as well as the historical inspiration above.</p>
 <figure>
-<img src="img/sketch.png" alt="Figure 4: Sktech of Eventual Visualisation" /><figcaption aria-hidden="true">Figure 4: Sktech of Eventual Visualisation</figcaption>
+<img src="img/sketch.jpeg" alt="Figure 4: Sktech of Eventual Visualisation" /><figcaption aria-hidden="true">Figure 4: Sktech of Eventual Visualisation</figcaption>
 </figure>
 <h2 id="step-by-step-guide">6. Step-by-Step Guide</h2>
 <h3 id="data-preparation">6.1. Data Preparation</h3>
@@ -2263,7 +2263,7 @@ Using Microsoft Excel file, open the raw data (outputFile.xlsx).
 2
 </td>
 <td style="text-align:left;">
-In spreadsheet T1, remove the first 5 rows. Repeat step in spreadsheet T2.
+Since we need to make sure that the headers are in the first row, we will remove the first 5 rows in spreadsheet T1. Repeat step in spreadsheet T2.
 </td>
 <td style="text-align:left;">
 <img src="img/2.png" />
@@ -2274,7 +2274,7 @@ In spreadsheet T1, remove the first 5 rows. Repeat step in spreadsheet T2.
 3
 </td>
 <td style="text-align:left;">
-Remove rows 2 to 8 in both spreadsheet T1 and T2.
+Remove rows 2 to 8 in both spreadsheet T1 and T2, since these rows showcase cumulative amounts.
 </td>
 <td style="text-align:left;">
 <img src="img/3.png" />
@@ -2285,7 +2285,7 @@ Remove rows 2 to 8 in both spreadsheet T1 and T2.
 4
 </td>
 <td style="text-align:left;">
-Remove rows 115 to 128 in spreadsheet T1. Similarly, remove rows 87 to 100 in T2.
+Trim the bottom of the table with commentary and no data, by removing rows 115 to 128 in spreadsheet T1. Similarly, remove rows 87 to 100 in T2.
 </td>
 <td style="text-align:left;">
 <img src="img/4.png" />
@@ -2296,7 +2296,7 @@ Remove rows 115 to 128 in spreadsheet T1. Similarly, remove rows 87 to 100 in T2
 5
 </td>
 <td style="text-align:left;">
-Since the visualization was based on data from 2019 onwards, remove columns B to SW in both spreadsheet T1 and T2.
+Since the visualization is based on data only between the years 2019 and 2020, we will remove columns B to SW and TV to TY in both spreadsheet T1 and T2.
 </td>
 <td style="text-align:left;">
 <img src="img/5.png" />
@@ -2318,7 +2318,7 @@ Since the dates in row 1 are not in proper date format, reformat dates to the fi
 7
 </td>
 <td style="text-align:left;">
-Insert a column in column B and name it “Type”. Then fill the column with the value “Import”.Insert a similar column in T2 but fill the column with the value “Export”.
+Since we would need to differentiate both these spreadsheets after we consolidate them, we would first insert a column in column B and name it “Type”. Then fill the column with the value “Import” in T1.Insert a similar column in T2 but fill the column with the value “Export”.
 </td>
 <td style="text-align:left;">
 <img src="img/7.png" />
@@ -2329,7 +2329,7 @@ Insert a column in column B and name it “Type”. Then fill the column with th
 8
 </td>
 <td style="text-align:left;">
-From the Data ribbon, select the button “From Table/Range”.
+For subsequent use in Tableau Desktop, we would need to change the table layout from a wide table to a long table. From the Data ribbon, select the button “From Table/Range”.
 </td>
 <td style="text-align:left;">
 <img src="img/8.png" />
@@ -2340,7 +2340,7 @@ From the Data ribbon, select the button “From Table/Range”.
 9
 </td>
 <td style="text-align:left;">
-Ensure that $A<span class="math inline">\(1:\)</span>AD$114 is selected and click OK. A Power Query Editor program will then launch.
+Ensure that $A<span class="math inline">\(1:\)</span>Z$114 is selected and click OK. A Power Query Editor program will then launch.
 </td>
 <td style="text-align:left;">
 <img src="img/9.png" />
@@ -2373,7 +2373,7 @@ Rename the third and fourth column to Period and Trade_Amt.
 12
 </td>
 <td style="text-align:left;">
-To load the results back into Excel, within the Home (tab), select Close &amp; Load.
+To load the results back into Excel, within the Home (tab), select Close &amp; Load. The transformed table will appear in a new worksheet called Table1.
 </td>
 <td style="text-align:left;">
 <img src="img/12.png" />
@@ -2384,7 +2384,7 @@ To load the results back into Excel, within the Home (tab), select Close &amp; L
 13
 </td>
 <td style="text-align:left;">
-To only extract the country name in the first column, insert a column and then use the following formula: “=TRIM(LEFT(<span class="citation" data-cites="Country">[@Country]</span>,SEARCH(”(“,<span class="citation" data-cites="Country">[@Country]</span>)-1))”. To keep these values, copy and paste back these same values only.
+To only extract the country name in the first column, insert a new column in column B and then use the following formula: “=TRIM(LEFT(<span class="citation" data-cites="Country">[@Country]</span>,SEARCH(”(“,<span class="citation" data-cites="Country">[@Country]</span>)-1))”. To keep these values, copy and paste back these same values only.
 </td>
 <td style="text-align:left;">
 <img src="img/13.png" />
@@ -2395,7 +2395,7 @@ To only extract the country name in the first column, insert a column and then u
 14
 </td>
 <td style="text-align:left;">
-Remove column A with the old values. Rename the header of the latest column A to Country.
+Remove column A with the old values. Rename the header of the latest column A to Country. Since the Trade_Amt values are actually in thousands, we would need to reflect this accordingly. Multiply the values within the Trade_Amt column by a thousand. You have now completed the transformation for sheet T1.
 </td>
 <td style="text-align:left;">
 <img src="img/14.png" />
@@ -2406,7 +2406,7 @@ Remove column A with the old values. Rename the header of the latest column A to
 15
 </td>
 <td style="text-align:left;">
-Repeat steps 8 to 14 for sheet T2.
+Repeat steps 8 to 14 for sheet T2. Ensure that $A<span class="math inline">\(1:\)</span>Z$86 is selected.
 </td>
 <td style="text-align:left;">
 <img src="img/15.png" />
@@ -2417,7 +2417,7 @@ Repeat steps 8 to 14 for sheet T2.
 16
 </td>
 <td style="text-align:left;">
-To create a consolidated file, copy and combine the transformed tables in steps 14 and 15 into a single separate sheet.
+To create a consolidated file, copy and combine the transformed tables in steps 14 and 15 into a new workbook.
 </td>
 <td style="text-align:left;">
 <img src="img/16.png" />
@@ -2428,21 +2428,10 @@ To create a consolidated file, copy and combine the transformed tables in steps 
 17
 </td>
 <td style="text-align:left;">
-Uncheck the six countries (Hong Kong, Mainland China, Japan, Malaysia, Taiwan and US) from the Country filter and delete the rows. Then remove filter to populate the table with only the six countries.
+Since we just need the six countries, we will remove the other countries. Highlight columns A to D and go to the Data ribbon and select Filter. Uncheck the six countries (Hong Kong, Japan, Mainland China, Malaysia, Taiwan and US) from the Country filter and delete all rows from row 2 onwards. Then remove filter to repopulate the table with only the six countries. Save this file as “Consol.xlsx”. This file will then be used for the visualisation on Tableau Desktop.
 </td>
 <td style="text-align:left;">
 <img src="img/17.png" />
-</td>
-</tr>
-<tr>
-<td style="text-align:right;">
-18
-</td>
-<td style="text-align:left;">
-Select the periods within 2021 from the Period filter and delete the rows. Save this file as “Consol”. This file will then be used for the visualisation on Tableau Desktop.
-</td>
-<td style="text-align:left;">
-<img src="img/17a.png" />
 </td>
 </tr>
 </tbody>
@@ -2496,7 +2485,7 @@ From the bottom bar, select Sheet 1. Then drag Country and Period to Columns, an
 3
 </td>
 <td style="text-align:left;">
-On the left Data bar, select the dropdown menu for Period. Change Data Type to Date.
+Let’s change the Period to a Month-Year date format. On the left Data bar, select the dropdown menu for Period. Change Data Type to Date.
 </td>
 <td style="text-align:left;">
 <img src="img/20.png" />
@@ -2518,7 +2507,7 @@ From the Columns bar at the top of the screen, select the dropdown menu for Peri
 5
 </td>
 <td style="text-align:left;">
-Drag Type to Colour Marks
+To differentiate Export and Import using colour, drag Type to Colour Marks
 </td>
 <td style="text-align:left;">
 <img src="img/22.png" />
@@ -2551,7 +2540,7 @@ Within the Colour Marks, select 100% Opacity.
 8
 </td>
 <td style="text-align:left;">
-Since the Export and Import values should not be stacked on top of each other, we will separate them. Select Analysis from the toolbar, then select Stack Marks, then select Off
+Since the Export and Import values should not be stacked on top of each other, we will need to separate them. Select Analysis from the toolbar, then select Stack Marks, then select Off
 </td>
 <td style="text-align:left;">
 <img src="img/25.png" />
@@ -2562,7 +2551,7 @@ Since the Export and Import values should not be stacked on top of each other, w
 9
 </td>
 <td style="text-align:left;">
-To know the lowest level between Export and Import for each month, a calculated field will need to be created. Select Trade Amt from the left Data bar, and create a Calculated Field
+To know the lowest level of either Export and Import for each month, a calculated field will need to be created. Select Trade Amt from the left Data bar, and create a Calculated Field
 </td>
 <td style="text-align:left;">
 <img src="img/26.png" />
@@ -2573,7 +2562,7 @@ To know the lowest level between Export and Import for each month, a calculated 
 10
 </td>
 <td style="text-align:left;">
-Name this calculated field, Lowest_Level. Then use the following formula: {EXCLUDE [Type]:MIN([Trade Amt])}
+Name this calculated field, Lowest_Level. Then use the following formula: {EXCLUDE [Type]:MIN([Trade Amt])}. Check that the calculation is valid.
 </td>
 <td style="text-align:left;">
 <img src="img/27.png" />
@@ -2617,7 +2606,7 @@ Click on the Detail Marks icon beside Measure Names and select Colour
 14
 </td>
 <td style="text-align:left;">
-Select Measure Names in the Marks column, then select Colour marks and Edit Colours. Select the colour White on both Lowest_Level fields
+To hide the Lowest_Level area, select Measure Names in the Marks column, then select Colour marks and Edit Colours. Select the colour White on both Lowest_Level fields
 </td>
 <td style="text-align:left;">
 <img src="img/31.png" />
@@ -2650,7 +2639,7 @@ Remove Measure Names from the Marks section, by dragging it out of the window.
 17
 </td>
 <td style="text-align:left;">
-Right-click on Trade Amt and select Dual Axis.
+To combine both graphs, right-click on Trade Amt vertical axis and select Dual Axis.
 </td>
 <td style="text-align:left;">
 <img src="img/34.png" />
@@ -2661,7 +2650,7 @@ Right-click on Trade Amt and select Dual Axis.
 18
 </td>
 <td style="text-align:left;">
-Right-click on secondary axis, and select both Synchronize Axis and hide Show Header.
+Right-click on the Trade Amt secondary axis, and select both Synchronize Axis and hide Show Header.
 </td>
 <td style="text-align:left;">
 <img src="img/35.png" />
@@ -2672,7 +2661,7 @@ Right-click on secondary axis, and select both Synchronize Axis and hide Show He
 19
 </td>
 <td style="text-align:left;">
-Select Country at the top and Hide Fields Labels for Columns.
+To remove the Country header, select Country at the top and Hide Fields Labels for Columns.
 </td>
 <td style="text-align:left;">
 <img src="img/36.png" />
@@ -2683,7 +2672,7 @@ Select Country at the top and Hide Fields Labels for Columns.
 20
 </td>
 <td style="text-align:left;">
-Select Sheet 1 at the top and select Hide Title.
+Likewise to hide the Sheet 1 header, select Sheet 1 at the top and select Hide Title.
 </td>
 <td style="text-align:left;">
 <img src="img/37.png" />
@@ -2694,7 +2683,7 @@ Select Sheet 1 at the top and select Hide Title.
 21
 </td>
 <td style="text-align:left;">
-To remove the horizontal grid lines, select Format and choose Lines. Then within the Format Lines window, select None for Grid Lines.
+To remove the horizontal grid lines, select Format and choose Lines. Then within the Format Lines window, select None for Grid Lines within the Rows tab.
 </td>
 <td style="text-align:left;">
 <img src="img/38.png" />
@@ -2705,7 +2694,7 @@ To remove the horizontal grid lines, select Format and choose Lines. Then within
 22
 </td>
 <td style="text-align:left;">
-Reorder the countries by dragging the country names into their respective positions as per the image.
+We will manually reorder the countries in descending order of trade from left to right. Since Hong Kong is an anomaly with a large export-import gap, we will place it at the right most placement. Reorder the countries by dragging the country names into their respective positions as per the image.
 </td>
 <td style="text-align:left;">
 <img src="img/39.png" />
@@ -2850,7 +2839,7 @@ To replace the legend, we will colour code the words Export and Import. Highligh
 4
 </td>
 <td style="text-align:left;">
-To perfectly align the header, select the text and then the layout column. Follow the position and size dimensions as shown in the picture. Do note that your width might differ from the picture, given your differing screen resolution.
+To perfectly align the header, select the text and then the layout column. Follow these dimensions, x of 2, y of 1, w of 1639 and h of 58. Do note that your width might differ from the picture, given your respective screen resolution.
 </td>
 <td style="text-align:left;">
 <img src="img/50.png" />
@@ -2872,7 +2861,7 @@ Let’s now create a sub-header in similar fashion. Within Objects, click on Flo
 6
 </td>
 <td style="text-align:left;">
-As per before, to perfectly align the sub-header, select the text and then the layout column. Follow the position and size dimensions as shown in the picture.
+As per before, to perfectly align the sub-header, select the text and then the layout column. Follow these dimensions, x of 2, y of 46, w of 1639 and h of 69.
 </td>
 <td style="text-align:left;">
 <img src="img/52.png" />
@@ -2894,7 +2883,7 @@ Next drag the newly created Viz sheet into the dashboard and remove its legend.
 8
 </td>
 <td style="text-align:left;">
-To nicely align the Viz sheet, follow the position and size dimensions as shown in the picture.
+To nicely align the Viz sheet, follow these dimensions, x of 2, y of 90, w of 1639 and h of 780.
 </td>
 <td style="text-align:left;">
 <img src="img/54.png" />
@@ -2927,7 +2916,7 @@ To annotate our comments, go back to the Viz worksheet, right-click a point on t
 11
 </td>
 <td style="text-align:left;">
-Rename your dashbaord as Viz1 and then save this dashboard to Tableau Public.
+Rename your dashboard as Viz1 and then save this dashboard to Tableau Public.
 </td>
 <td style="text-align:left;">
 <img src="img/56.png" />
