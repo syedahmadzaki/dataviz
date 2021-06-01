@@ -1,22 +1,5 @@
 [
   {
-    "path": "posts/2021-06-01-test/",
-    "title": "Just testing",
-    "description": "A short description of the post.",
-    "author": [
-      {
-        "name": "Syed Ahmad Zaki",
-        "url": "https://www.google.com/"
-      }
-    ],
-    "date": "2021-06-01",
-    "categories": [],
-    "contents": "\r\nDistill is a publication format for scientific and technical writing, native to the web.\r\nLearn more about using Distill at https://rstudio.github.io/distill.\r\n\r\n\r\n\r\n",
-    "preview": {},
-    "last_modified": "2021-06-01T16:05:13+08:00",
-    "input_file": {}
-  },
-  {
     "path": "posts/2021-05-26-dataviz-makeover-1/",
     "title": "DataViz Makeover 1",
     "description": "Recasting Visualisation To Better Illuminate Underlying Insights \n(Using Data From Singapore’s Department Of Statistics)",
