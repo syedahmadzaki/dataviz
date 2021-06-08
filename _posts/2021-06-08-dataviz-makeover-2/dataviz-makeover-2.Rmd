@@ -1,0 +1,97 @@
+---
+title: "Dataviz Makeover 2"
+description: |
+  Recasting Visualisation To Better Illuminate Underlying Insights 
+  (Again Using Data From Singapore’s Department Of Statistics)
+author:
+  - name: Syed Ahmad Zaki
+    url: https://www.google.com/
+date: 06-08-2021
+output:
+  distill::distill_article:
+    self_contained: false
+    toc: true
+    toc_depth: 3
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+library(kableExtra)
+library(tidyverse)
+```
+
+## 1.	Makeover Requirements
+###  1.1.	The Task
+a.	Critic the visualized graph with at least three points from each evaluation criterion (clarity and aesthetics) respectively.
+b.	Suggest alternative graphical presentation to improve the current design:  
+  +	Proposed alternative data visualization must be in static form.
+  +	Proposed design would need to be sketched.
+  +	Support your design by describing the advantages or which part of the issue(s) your alternative design attempts to overcome.
+c.	Use Tableau to design the proposed data visualization.
+d.	Provide step-by-step description on how the data visualization was prepared.
+e.	Describe three major observations revealed by the prepared data visualization.
+
+### 1.2.	Deliverables  
+a. The study period should be between January 2011-December 2020. No additional data sets are required.  
+b. Focus on telling data story using appropriate statistical graphic methods, graphical design principles and interactive techniques, including animation.  
+
+## 2.	Original Visualisation and Its Perceived Objective
+The original visualization (shown below) showcases the merchandise trade, for both export and import, of ten of Singapore's major trading partners in 2020.
+
+![Figure 1: Original Data Visualisation](img/a.jpeg)
+
+Using the same methodology in our earlier [DataViz Makeover 1](https://syedahmadzakidataviz.netlify.app/posts/2021-05-26-dataviz-makeover-1/), the intent of the visualisation would need to be first defined. We attempt the narrative for the above visualization, as follows:  
+
+***“In 2020, each of our top ten trading countries (Mainland China, Malaysia, EU, United States, Taiwan, Japan, Republic of Korea, Indonesia, Hong Kong and Thailand) differ greatly in their respective export, import as well as total merchandise trade value.”***  
+
+To further illuminate the narrative, we propose the following questions that the visualization aim to answer. Given the subject matter, these questions are very similar to those proposed in our earlier makeover:  
+•	What are the import and export levels in each of the top ten trading countries?  
+•	How do these import and export levels fluctuate over time?  
+•	Which countries are net exporter or net importer?  
+•	Within the top ten countries, who has the highest and lowest import and export levels respectively?  
+•	(Additional) Do these fluctuations coincide with any event?  
+
+## 3.	Critiquing Methodology  
+
+The methodology will remain the same as before, where we will assess based on clarity and aesthetics.
+
+## 4.	Critique of Visualisation
+### 4.1.	Clarity:
+•	**Lack of proper scales on both x and y axis**  
+Though each bubble has a merchandise trading amount, the x and y axis lacks such a scale. We're unsure whether the scales refer to millions, billions or even kilograms.  
+
+•	**ABC**  
+ABC  
+
+### 4.2.	Aesthetics:
+•	**Unnecessary colours for each country**  
+The ten countries each have their own colour scheme to differentiate one from the other. Differentiation has already been achieved from the different bubble sizes.
+
+•	**Confusing use of icons**  
+ABC  
+
+•	**The bubbles hide behind each other**  
+Somehow similar sized bubbles are grouped closely together. Naturally some would be hidden behind others. When the cursor hovers each bubble, the bubbles move forward to display the country name and merchandise trade value. The user wouldn't have noticed the availability of such interactivity, given the design is very much like a static dashboard.
+
+•	**ABC**  
+ABC  
+
+•	**ABC**  
+ABC  
+
+
+
+## 5.	Alternative Design
+### 5.1.	Suggested Improvements  
+The use of the bubble chart as per the original visualisation will be continued, given the use of three continuous data (export, import and merchandise trade value). As such, the following suggestions are mere tweaks to the original visualisation:  
+•	Proper scales on both x and y axis   
+•	ABC   
+•	ABC   
+•	ABC   
+•	ABC   
+
+
+
+

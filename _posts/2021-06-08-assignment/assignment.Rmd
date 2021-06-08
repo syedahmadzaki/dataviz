@@ -1,0 +1,88 @@
+---
+title: "VAST Challenge 2021: Mini-Challenge 2"
+description: |
+  A short description of the post.
+author:
+  - name: Syed Ahmad Zaki
+    url: https://www.google.com/
+date: 06-08-2021
+output:
+  distill::distill_article:
+    self_contained: false
+    code_folding: true
+    toc: true
+    toc_depth: 3
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library (ggplot2)
+library (tidyverse)
+```
+
+**Team Member:**  
+Syed Ahmad Zaki, Singapore Management University of Singapore, ahmadzaki.2020@mitb.smu.edu.sg   
+Student Team:  YES  
+
+**Tools Used:**  
+Rmarkdown  
+
+**Approximately how many hours were spent working on this submission in total?**  
+Provide an estimate of the total number of hours worked on this submission by your entire team.  
+
+**May we post your submission in the Visual Analytics Benchmark Repository after VAST Challenge 2021 is complete?** YES  
+
+**Video**
+Provide a link to your video.  Example:
+http://www.westbirmingham.ac.uk/uwb-smith-mc2-video.wmv
+
+---
+
+As a visual analytics expert assisting law enforcement, your mission is to identify which GASTech employees made which purchases and identify suspicious patterns of behavior.. You must cope with uncertainties that result from missing, conflicting, and imperfect data to make recommendations for further investigation.
+
+Use visual analytics to analyze the available data and develop responses to the questions below. In addition, prepare a video that shows how you used visual analytics to solve this challenge. Submission instructions are available here. Entry forms are available for download below.
+https://vast-challenge.github.io/2021/MC2.html
+
+---
+
+## 1.	Data Preparation
+
+
+
+## 2.	Data Exploration Analysis
+
+---
+
+**Questions**
+
+1 –– Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words.
+
+Provide your answer and corresponding images here.
+
+2 – Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
+
+Provide your answer and corresponding images here.
+
+3 – Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
+
+Provide your answer and corresponding images here.
+
+4 –– Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
+
+Provide your answer and corresponding images here.
+
+5 –– Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why    Please limit your response to 10 images and 500 words.
+
+Provide your answer and corresponding images here.
+
+6 –– If you solved this mini-challenge in 2014, how did you approach it differently this year?
+
+Provide your answer here.
+
+```{r}
+
+2 + 2
+
+```
+
