@@ -17,8 +17,11 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-library (ggplot2)
-library (tidyverse)
+
+# Installing and loading necessary packages
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(ggplot2, tidyverse, readr, jpeg, grid, plotly, gganimate, writexl, qwraps2)
+
 ```
 
 **Team Member:**  
@@ -47,6 +50,66 @@ https://vast-challenge.github.io/2021/MC2.html
 ---
 
 ## 1.	Data Preparation
+
+
+Loading all datasets
+```{r}
+
+# Loading all datasets and image
+mc2 <- jpeg::readJPEG("img/MC2-tourist.jpg", native = TRUE) # Add jpeg map file
+gps <- readr::read_csv("data/gps.csv") # Add gps data
+assignments <- readr::read_csv("data/car-assignments.csv") # Add car assignments
+
+```
+
+GPS Data Manipulation
+```{r}
+
+# GPS Data Manipulation
+gps_name <- left_join(gps,assignments, by = c("id" = "CarID")) # Merge car assignments to gps data
+gps_name$Timestamp <- as.POSIXct(gps_name$Timestamp, format = "%m/%d/%Y  %H:%M:%S", tz = "GMT") # Switching month-day format
+gps_name <- gps_name[with(gps_name,order(id,Timestamp)),] # Sort first by ID in ascending order and then Timestamp by oldest to newest
+gps_name <- gps_name %>% # Add running number in the first column
+  mutate(No = 1:n()) %>% 
+  select(No, everything()) 
+
+gps_name <- gps_name %>% # Create additional column indicating time taken from previous timestamp for same ID
+#    group_by(id) %>%
+    mutate(Delta = Timestamp - lag(Timestamp, default = first(Timestamp)))
+
+gps_name$Delta <- as.numeric(gps_name$Delta)
+
+spots <- gps_name %>% # Filtering out gps coordinates where stationary for only 0-9 secs
+  filter(!(Delta %in% c(0:9)))
+spots$No <- rep(1:3648, times = 1)
+
+spots_l <- spots[,4:5] # Extract only lat long
+spots_ll <- spots_l %>% slice(rep(1:n(), each = 3648))
+spots_ll$No <- rep(1:3648, times = 3648)
+spots_l$Noo <- rep(1:3648, times = 1)
+spots_ll <- left_join(spots_ll,spots_l, by = c("No" = "Noo"))
+spots_ll$Diff <- sqrt((spots_ll$lat.x-spots_ll$lat.y)^2+(spots_ll$long.x-spots_ll$long.y)^2)
+
+#n_perc(spots_ll$Diff < 0.05)
+
+#write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Desktop\\spots.csv")
+
+# Mapping map and gps together specifically for CarID #1
+mapping_spots <- ggplot(spots, aes(long, lat)) +
+  annotation_custom(rasterGrob(mc2,
+    width = unit(1, "npc"),
+    height = unit(1,"npc")),
+  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
+  geom_point(size = 0.1) + 
+  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
+  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
+                     panel.grid.major = element_blank(), 
+                     panel.grid.minor = element_blank(), 
+                     axis.line = element_line(colour = "black"))  
+
+mapping_spots
+
+```
 
 
 
@@ -83,6 +146,38 @@ Provide your answer here.
 ```{r}
 
 2 + 2
+Sys.timezone(location = TRUE)
 
 ```
+
+
+
+
+Testing the use of a static image as background and showcasing the gps data on it using ggplot
+
+```{r}
+
+
+
+# Mapping map and gps together specifically for CarID #1
+mapping <- ggplot(gps_name %>%
+                    filter(id == "1"),
+                  aes(long, lat)) +
+  annotation_custom(rasterGrob(mc2,
+    width = unit(1, "npc"),
+    height = unit(1,"npc")),
+  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
+  geom_point(size = 0.1) + 
+  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
+  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
+                     panel.grid.major = element_blank(), 
+                     panel.grid.minor = element_blank(), 
+                     axis.line = element_line(colour = "black"))  
+#  + transition_time(Timestamp) +
+#  labs(title = "Date:{frame_time}")
+
+mapping
+
+```
+
 
