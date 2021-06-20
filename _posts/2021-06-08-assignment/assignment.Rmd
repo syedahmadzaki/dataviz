@@ -20,7 +20,7 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Installing and loading necessary packages
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(ggplot2, tidyverse, readr, jpeg, grid, plotly, gganimate, writexl, qwraps2)
+pacman::p_load(ggplot2, tidyverse, readr, jpeg, grid, plotly, gganimate, writexl, qwraps2, reshape2, scales)
 
 ```
 
@@ -34,14 +34,16 @@ Rmarkdown
 **Approximately how many hours were spent working on this submission in total?**  
 Provide an estimate of the total number of hours worked on this submission by your entire team.  
 
-**May we post your submission in the Visual Analytics Benchmark Repository after VAST Challenge 2021 is complete?** YES  
+**May we post your submission in the Visual Analytics Benchmark Repository after VAST Challenge 2021 is complete?**  
+YES  
 
-**Video**
+**Video**  
 Provide a link to your video.  Example:
 http://www.westbirmingham.ac.uk/uwb-smith-mc2-video.wmv
 
 ---
 
+## Our Mission (Should We Accept It)
 As a visual analytics expert assisting law enforcement, your mission is to identify which GASTech employees made which purchases and identify suspicious patterns of behavior.. You must cope with uncertainties that result from missing, conflicting, and imperfect data to make recommendations for further investigation.
 
 Use visual analytics to analyze the available data and develop responses to the questions below. In addition, prepare a video that shows how you used visual analytics to solve this challenge. Submission instructions are available here. Entry forms are available for download below.
@@ -49,21 +51,122 @@ https://vast-challenge.github.io/2021/MC2.html
 
 ---
 
-## 1.	Data Preparation
+## 1.	Data Understanding
+We start by loading all the necessary datasets provided in VAST Challenge 2021 Mini-Challenge 2.
 
-
-Loading all datasets
-```{r}
+```{r load-all-datasets}
 
 # Loading all datasets and image
+cc <- readr::read_csv("data/cc_data.csv") # Add credit card data
+loyalty <- readr::read_csv("data/loyalty_data.csv") # Add loyalty data
 mc2 <- jpeg::readJPEG("img/MC2-tourist.jpg", native = TRUE) # Add jpeg map file
 gps <- readr::read_csv("data/gps.csv") # Add gps data
 assignments <- readr::read_csv("data/car-assignments.csv") # Add car assignments
 
 ```
 
-GPS Data Manipulation
-```{r}
+### 1.1	Understanding the Credit Card data
+As always, we will review each of the datasets in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.
+
+We will begin by reviewing the credit card data.
+
+```{r extract-cc-structure}
+
+str(cc)
+
+```
+
+While exploring these four columns, the date format within the timestamp were in a MM-DD-YYYY H:M format. We will ensure that R understands this format.
+
+```{r readjust-cc-timestamp}
+
+cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT")
+
+```
+
+### 1.2	Understanding the Loyalty Card data
+We will now review the loyalty card data.
+
+```{r extract-loyalty-structure}
+
+str(loyalty)
+
+```
+Though the loyalty data has a similar structure to the credit card data, there are notable differences. Apart from the difference in the last column, the timestamp is in a MM-DD-YYYY format. This is a slight difference to the credit card data. We will now make similar adjustments to the timestamp column.
+
+```{r readjust-loyalty-timestamp}
+
+loyalty$timestamp <- as.POSIXct(loyalty$timestamp, format = "%m/%d/%Y", tz = "GMT")
+
+```
+
+
+
+
+
+
+
+
+
+
+## 2.	Data Preparation
+### 2.1	Combining Both Credit Card and Loyalty Data
+We will now attempt to find matching rows between the cc and loyalty data. We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
+
+```{r levenshtein-distance-matching}
+
+cc <- tibble::rowid_to_column(cc, "ID") #Create a numeric id column
+loyalty <- tibble::rowid_to_column(loyalty, "ID") #Create a numeric id column
+cc$date <- as.Date(cc$timestamp) #Create a separate column just for dates in the cc data
+cc$concat <- paste(cc$date,cc$location,cc$price) #Create a separate column of unique values using concatenated values in the cc data
+loyalty$concat <- paste(loyalty$timestamp,loyalty$location,loyalty$price) #Create a separate column of unique values using concatenated values in the loyalty data
+dist.concat <- adist(cc$concat,loyalty$concat, partial = TRUE, ignore.case = TRUE) #Creates a matrix with the Standard Levenshtein distance between both newly created concat columns
+min.concat <- apply(dist.concat, 1, min) #Extract pairs with minimum distance
+
+match.s1.s2 <- NULL
+for (i in 1:nrow(dist.concat))
+{
+  s2.i <- match(min.concat[i], dist.concat[i,])
+  s1.i <- i
+  match.s1.s2 <- rbind(data.frame(loyalty.i=s2.i,
+                                    cc.i=s1.i,
+                                    loyalty_concat=loyalty[s2.i,]$concat,
+                                    cc_concat=cc[s1.i,]$concat,
+                                    adist=min.concat[i]),match.s1.s2)
+  }
+    
+cc_loyalty <- match.s1.s2 %>%
+  left_join(select(cc, last4ccnum, ID), by = c("cc.i" = "ID")) %>% #Add in CC num column
+  left_join(select(loyalty, loyaltynum, ID), by = c("loyalty.i" = "ID")) #Add in loyalty card num column
+
+```
+
+Let's now extract the matching credit card-loyalty pairs according to their distance.
+
+```{r extract-pairs}
+
+cc_loyalty_unique <- dcast(cc_loyalty, last4ccnum + loyaltynum ~ adist) #Long to wide by transposing adist
+cc_loyalty_unique$Total <- rowSums(cc_loyalty_unique[,c("0","1","2","3","4","5","11")]) #Sum rows
+cc_loyalty_unique$MatchPct <- percent(cc_loyalty_unique[,3] / cc_loyalty_unique$Total)
+
+cc_loyalty_unique_80 <- cc_loyalty_unique %>% 
+  filter (MatchPct >= "80.00%")
+n_distinct(cc_loyalty_unique_80$last4ccnum)
+n_distinct(cc_loyalty_unique_80$loyaltynum)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+```{r GPS-data-manipulation}
 
 # GPS Data Manipulation
 gps_name <- left_join(gps,assignments, by = c("id" = "CarID")) # Merge car assignments to gps data
@@ -113,7 +216,7 @@ mapping_spots
 
 
 
-## 2.	Data Exploration Analysis
+## 3.	Data Exploration Analysis
 
 ---
 

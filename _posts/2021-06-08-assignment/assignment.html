@@ -116,7 +116,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["assignment_files/anchor-4.2.2/anchor.min.js","assignment_files/bowser-1.9.3/bowser.min.js","assignment_files/distill-2.2.21/template.v2.js","assignment_files/figure-html5/unnamed-chunk-2-1.png","assignment_files/figure-html5/unnamed-chunk-2-2.png","assignment_files/figure-html5/unnamed-chunk-4-1.png","assignment_files/header-attrs-2.8/header-attrs.js","assignment_files/jquery-1.11.3/jquery.min.js","assignment_files/popper-2.6.0/popper.min.js","assignment_files/tippy-6.2.7/tippy-bundle.umd.min.js","assignment_files/tippy-6.2.7/tippy-light-border.css","assignment_files/tippy-6.2.7/tippy.css","assignment_files/tippy-6.2.7/tippy.umd.min.js","assignment_files/webcomponents-2.0.0/webcomponents.js","data/Abila.dbf","data/Abila.kml","data/Abila.prj","data/Abila.sbn","data/Abila.sbx","data/Abila.shp","data/Abila.shx","data/car-assignments.csv","data/cc_data.csv","data/gps.csv","data/Kronos Island.kmz","data/Kronos_Island.dbf","data/Kronos_Island.prj","data/Kronos_Island.sbn","data/Kronos_Island.sbx","data/Kronos_Island.shp","data/Kronos_Island.shx","data/loyalty_data.csv","img/MC2-tourist.jpg"]}
+  {"type":"character","attributes":{},"value":["assignment_files/anchor-4.2.2/anchor.min.js","assignment_files/bowser-1.9.3/bowser.min.js","assignment_files/distill-2.2.21/template.v2.js","assignment_files/figure-html5/GPS-data-manipulation-1.png","assignment_files/figure-html5/unnamed-chunk-2-1.png","assignment_files/figure-html5/unnamed-chunk-2-2.png","assignment_files/figure-html5/unnamed-chunk-3-1.png","assignment_files/figure-html5/unnamed-chunk-4-1.png","assignment_files/figure-html5/unnamed-chunk-5-1.png","assignment_files/header-attrs-2.8/header-attrs.js","assignment_files/jquery-1.11.3/jquery.min.js","assignment_files/popper-2.6.0/popper.min.js","assignment_files/tippy-6.2.7/tippy-bundle.umd.min.js","assignment_files/tippy-6.2.7/tippy-light-border.css","assignment_files/tippy-6.2.7/tippy.css","assignment_files/tippy-6.2.7/tippy.umd.min.js","assignment_files/webcomponents-2.0.0/webcomponents.js","data/Abila.dbf","data/Abila.kml","data/Abila.prj","data/Abila.sbn","data/Abila.sbx","data/Abila.shp","data/Abila.shx","data/car-assignments.csv","data/cc_data.csv","data/gps.csv","data/Kronos Island.kmz","data/Kronos_Island.dbf","data/Kronos_Island.prj","data/Kronos_Island.sbn","data/Kronos_Island.sbx","data/Kronos_Island.shp","data/Kronos_Island.shx","data/loyalty_data.csv","img/MC2-tourist.jpg"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
   <!--/radix_placeholder_navigation_in_header-->
@@ -1482,8 +1482,17 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
 <nav class="l-text toc figcaption" id="TOC">
 <h3>Contents</h3>
 <ul>
-<li><a href="#data-preparation">1. Data Preparation</a></li>
-<li><a href="#data-exploration-analysis">2. Data Exploration Analysis</a></li>
+<li><a href="#our-mission-should-we-accept-it">Our Mission (Should We Accept It)</a></li>
+<li><a href="#data-understanding">1. Data Understanding</a>
+<ul>
+<li><a href="#understanding-the-credit-card-data">1.1 Understanding the Credit Card data</a></li>
+<li><a href="#understanding-the-loyalty-card-data">1.2 Understanding the Loyalty Card data</a></li>
+</ul></li>
+<li><a href="#data-preparation">2. Data Preparation</a>
+<ul>
+<li><a href="#combining-both-credit-card-and-loyalty-data">2.1 Combining Both Credit Card and Loyalty Data</a></li>
+</ul></li>
+<li><a href="#data-exploration-analysis">3. Data Exploration Analysis</a></li>
 </ul>
 </nav>
 </div>
@@ -1494,14 +1503,17 @@ Student Team: YES</p>
 Rmarkdown</p>
 <p><strong>Approximately how many hours were spent working on this submission in total?</strong><br />
 Provide an estimate of the total number of hours worked on this submission by your entire team.</p>
-<p><strong>May we post your submission in the Visual Analytics Benchmark Repository after VAST Challenge 2021 is complete?</strong> YES</p>
-<p><strong>Video</strong> Provide a link to your video. Example: <a href="http://www.westbirmingham.ac.uk/uwb-smith-mc2-video.wmv" class="uri">http://www.westbirmingham.ac.uk/uwb-smith-mc2-video.wmv</a></p>
+<p><strong>May we post your submission in the Visual Analytics Benchmark Repository after VAST Challenge 2021 is complete?</strong><br />
+YES</p>
+<p><strong>Video</strong><br />
+Provide a link to your video. Example: <a href="http://www.westbirmingham.ac.uk/uwb-smith-mc2-video.wmv" class="uri">http://www.westbirmingham.ac.uk/uwb-smith-mc2-video.wmv</a></p>
 <hr />
+<h2 id="our-mission-should-we-accept-it">Our Mission (Should We Accept It)</h2>
 <p>As a visual analytics expert assisting law enforcement, your mission is to identify which GASTech employees made which purchases and identify suspicious patterns of behavior.. You must cope with uncertainties that result from missing, conflicting, and imperfect data to make recommendations for further investigation.</p>
 <p>Use visual analytics to analyze the available data and develop responses to the questions below. In addition, prepare a video that shows how you used visual analytics to solve this challenge. Submission instructions are available here. Entry forms are available for download below. <a href="https://vast-challenge.github.io/2021/MC2.html" class="uri">https://vast-challenge.github.io/2021/MC2.html</a></p>
 <hr />
-<h2 id="data-preparation">1. Data Preparation</h2>
-Loading all datasets
+<h2 id="data-understanding">1. Data Understanding</h2>
+<p>We start by loading all the necessary datasets provided in VAST Challenge 2021 Mini-Challenge 2.</p>
 <div class="layout-chunk" data-layout="l-body">
 <details>
 <summary>
@@ -1509,6 +1521,8 @@ Show code
 </summary>
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class='co'># Loading all datasets and image</span>
+<span class='va'>cc</span> <span class='op'>&lt;-</span> <span class='fu'>readr</span><span class='fu'>::</span><span class='fu'><a href='https://readr.tidyverse.org/reference/read_delim.html'>read_csv</a></span><span class='op'>(</span><span class='st'>"data/cc_data.csv"</span><span class='op'>)</span> <span class='co'># Add credit card data</span>
+<span class='va'>loyalty</span> <span class='op'>&lt;-</span> <span class='fu'>readr</span><span class='fu'>::</span><span class='fu'><a href='https://readr.tidyverse.org/reference/read_delim.html'>read_csv</a></span><span class='op'>(</span><span class='st'>"data/loyalty_data.csv"</span><span class='op'>)</span> <span class='co'># Add loyalty data</span>
 <span class='va'>mc2</span> <span class='op'>&lt;-</span> <span class='fu'>jpeg</span><span class='fu'>::</span><span class='fu'><a href='https://rdrr.io/pkg/jpeg/man/readJPEG.html'>readJPEG</a></span><span class='op'>(</span><span class='st'>"img/MC2-tourist.jpg"</span>, native <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span> <span class='co'># Add jpeg map file</span>
 <span class='va'>gps</span> <span class='op'>&lt;-</span> <span class='fu'>readr</span><span class='fu'>::</span><span class='fu'><a href='https://readr.tidyverse.org/reference/read_delim.html'>read_csv</a></span><span class='op'>(</span><span class='st'>"data/gps.csv"</span><span class='op'>)</span> <span class='co'># Add gps data</span>
 <span class='va'>assignments</span> <span class='op'>&lt;-</span> <span class='fu'>readr</span><span class='fu'>::</span><span class='fu'><a href='https://readr.tidyverse.org/reference/read_delim.html'>read_csv</a></span><span class='op'>(</span><span class='st'>"data/car-assignments.csv"</span><span class='op'>)</span> <span class='co'># Add car assignments</span>
@@ -1516,7 +1530,146 @@ Show code
 </div>
 </details>
 </div>
-GPS Data Manipulation
+<h3 id="understanding-the-credit-card-data">1.1 Understanding the Credit Card data</h3>
+<p>As always, we will review each of the datasets in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.</p>
+<p>We will begin by reviewing the credit card data.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>spec_tbl_df [1,490 x 4] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+ $ timestamp : chr [1:1490] &quot;01/06/2014 07:28&quot; &quot;01/06/2014 07:34&quot; &quot;01/06/2014 07:35&quot; &quot;01/06/2014 07:36&quot; ...
+ $ location  : chr [1:1490] &quot;Brew&#39;ve Been Served&quot; &quot;Hallowed Grounds&quot; &quot;Brew&#39;ve Been Served&quot; &quot;Hallowed Grounds&quot; ...
+ $ price     : num [1:1490] 11.34 52.22 8.33 16.72 4.24 ...
+ $ last4ccnum: num [1:1490] 4795 7108 6816 9617 7384 ...
+ - attr(*, &quot;spec&quot;)=
+  .. cols(
+  ..   timestamp = col_character(),
+  ..   location = col_character(),
+  ..   price = col_double(),
+  ..   last4ccnum = col_double()
+  .. )</code></pre>
+</div>
+<p>While exploring these four columns, the date format within the timestamp were in a MM-DD-YYYY H:M format. We will ensure that R understands this format.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/as.POSIXlt.html'>as.POSIXct</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span>, format <span class='op'>=</span> <span class='st'>"%m/%d/%Y  %H:%M"</span>, tz <span class='op'>=</span> <span class='st'>"GMT"</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<h3 id="understanding-the-loyalty-card-data">1.2 Understanding the Loyalty Card data</h3>
+<p>We will now review the loyalty card data.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'><a href='https://rdrr.io/r/utils/str.html'>str</a></span><span class='op'>(</span><span class='va'>loyalty</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>spec_tbl_df [1,392 x 4] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+ $ timestamp : chr [1:1392] &quot;01/06/2014&quot; &quot;01/06/2014&quot; &quot;01/06/2014&quot; &quot;01/06/2014&quot; ...
+ $ location  : chr [1:1392] &quot;Brew&#39;ve Been Served&quot; &quot;Brew&#39;ve Been Served&quot; &quot;Hallowed Grounds&quot; &quot;Coffee Shack&quot; ...
+ $ price     : num [1:1392] 4.17 9.6 16.53 11.51 12.93 ...
+ $ loyaltynum: chr [1:1392] &quot;L2247&quot; &quot;L9406&quot; &quot;L8328&quot; &quot;L6417&quot; ...
+ - attr(*, &quot;spec&quot;)=
+  .. cols(
+  ..   timestamp = col_character(),
+  ..   location = col_character(),
+  ..   price = col_double(),
+  ..   loyaltynum = col_character()
+  .. )</code></pre>
+</div>
+<p>Though the loyalty data has a similar structure to the credit card data, there are notable differences. Apart from the difference in the last column, the timestamp is in a MM-DD-YYYY format. This is a slight difference to the credit card data. We will now make similar adjustments to the timestamp column.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>loyalty</span><span class='op'>$</span><span class='va'>timestamp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/as.POSIXlt.html'>as.POSIXct</a></span><span class='op'>(</span><span class='va'>loyalty</span><span class='op'>$</span><span class='va'>timestamp</span>, format <span class='op'>=</span> <span class='st'>"%m/%d/%Y"</span>, tz <span class='op'>=</span> <span class='st'>"GMT"</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+</div>
+<h2 id="data-preparation">2. Data Preparation</h2>
+<h3 id="combining-both-credit-card-and-loyalty-data">2.1 Combining Both Credit Card and Loyalty Data</h3>
+<p>We will now attempt to find matching rows between the cc and loyalty data. We will use <a href="https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/">fuzzy string matching</a> using <a href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance</a> which is available natively in R’s adist utilities package.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>cc</span> <span class='op'>&lt;-</span> <span class='fu'>tibble</span><span class='fu'>::</span><span class='fu'><a href='https://tibble.tidyverse.org/reference/rownames.html'>rowid_to_column</a></span><span class='op'>(</span><span class='va'>cc</span>, <span class='st'>"ID"</span><span class='op'>)</span> <span class='co'>#Create a numeric id column</span>
+<span class='va'>loyalty</span> <span class='op'>&lt;-</span> <span class='fu'>tibble</span><span class='fu'>::</span><span class='fu'><a href='https://tibble.tidyverse.org/reference/rownames.html'>rowid_to_column</a></span><span class='op'>(</span><span class='va'>loyalty</span>, <span class='st'>"ID"</span><span class='op'>)</span> <span class='co'>#Create a numeric id column</span>
+<span class='va'>cc</span><span class='op'>$</span><span class='va'>date</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/as.Date.html'>as.Date</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span><span class='op'>)</span> <span class='co'>#Create a separate column just for dates in the cc data</span>
+<span class='va'>cc</span><span class='op'>$</span><span class='va'>concat</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>date</span>,<span class='va'>cc</span><span class='op'>$</span><span class='va'>location</span>,<span class='va'>cc</span><span class='op'>$</span><span class='va'>price</span><span class='op'>)</span> <span class='co'>#Create a separate column of unique values using concatenated values in the cc data</span>
+<span class='va'>loyalty</span><span class='op'>$</span><span class='va'>concat</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste</a></span><span class='op'>(</span><span class='va'>loyalty</span><span class='op'>$</span><span class='va'>timestamp</span>,<span class='va'>loyalty</span><span class='op'>$</span><span class='va'>location</span>,<span class='va'>loyalty</span><span class='op'>$</span><span class='va'>price</span><span class='op'>)</span> <span class='co'>#Create a separate column of unique values using concatenated values in the loyalty data</span>
+<span class='va'>dist.concat</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/utils/adist.html'>adist</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>concat</span>,<span class='va'>loyalty</span><span class='op'>$</span><span class='va'>concat</span>, partial <span class='op'>=</span> <span class='cn'>TRUE</span>, ignore.case <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span> <span class='co'>#Creates a matrix with the Standard Levenshtein distance between both newly created concat columns</span>
+<span class='va'>min.concat</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/apply.html'>apply</a></span><span class='op'>(</span><span class='va'>dist.concat</span>, <span class='fl'>1</span>, <span class='va'>min</span><span class='op'>)</span> <span class='co'>#Extract pairs with minimum distance</span>
+
+<span class='va'>match.s1.s2</span> <span class='op'>&lt;-</span> <span class='cn'>NULL</span>
+<span class='kw'>for</span> <span class='op'>(</span><span class='va'>i</span> <span class='kw'>in</span> <span class='fl'>1</span><span class='op'>:</span><span class='fu'><a href='https://rdrr.io/r/base/nrow.html'>nrow</a></span><span class='op'>(</span><span class='va'>dist.concat</span><span class='op'>)</span><span class='op'>)</span>
+<span class='op'>{</span>
+  <span class='va'>s2.i</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/match.html'>match</a></span><span class='op'>(</span><span class='va'>min.concat</span><span class='op'>[</span><span class='va'>i</span><span class='op'>]</span>, <span class='va'>dist.concat</span><span class='op'>[</span><span class='va'>i</span>,<span class='op'>]</span><span class='op'>)</span>
+  <span class='va'>s1.i</span> <span class='op'>&lt;-</span> <span class='va'>i</span>
+  <span class='va'>match.s1.s2</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/cbind.html'>rbind</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/data.frame.html'>data.frame</a></span><span class='op'>(</span>loyalty.i<span class='op'>=</span><span class='va'>s2.i</span>,
+                                    cc.i<span class='op'>=</span><span class='va'>s1.i</span>,
+                                    loyalty_concat<span class='op'>=</span><span class='va'>loyalty</span><span class='op'>[</span><span class='va'>s2.i</span>,<span class='op'>]</span><span class='op'>$</span><span class='va'>concat</span>,
+                                    cc_concat<span class='op'>=</span><span class='va'>cc</span><span class='op'>[</span><span class='va'>s1.i</span>,<span class='op'>]</span><span class='op'>$</span><span class='va'>concat</span>,
+                                    adist<span class='op'>=</span><span class='va'>min.concat</span><span class='op'>[</span><span class='va'>i</span><span class='op'>]</span><span class='op'>)</span>,<span class='va'>match.s1.s2</span><span class='op'>)</span>
+  <span class='op'>}</span>
+    
+<span class='va'>cc_loyalty</span> <span class='op'>&lt;-</span> <span class='va'>match.s1.s2</span> <span class='op'>%&gt;%</span>
+  <span class='fu'>left_join</span><span class='op'>(</span><span class='fu'>select</span><span class='op'>(</span><span class='va'>cc</span>, <span class='va'>last4ccnum</span>, <span class='va'>ID</span><span class='op'>)</span>, by <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"cc.i"</span> <span class='op'>=</span> <span class='st'>"ID"</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>%&gt;%</span> <span class='co'>#Add in CC num column</span>
+  <span class='fu'>left_join</span><span class='op'>(</span><span class='fu'>select</span><span class='op'>(</span><span class='va'>loyalty</span>, <span class='va'>loyaltynum</span>, <span class='va'>ID</span><span class='op'>)</span>, by <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"loyalty.i"</span> <span class='op'>=</span> <span class='st'>"ID"</span><span class='op'>)</span><span class='op'>)</span> <span class='co'>#Add in loyalty card num column</span>
+</code></pre>
+</div>
+</details>
+</div>
+<p>Let’s now extract the matching credit card-loyalty pairs according to their distance.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>cc_loyalty_unique</span> <span class='op'>&lt;-</span> <span class='fu'>dcast</span><span class='op'>(</span><span class='va'>cc_loyalty</span>, <span class='va'>last4ccnum</span> <span class='op'>+</span> <span class='va'>loyaltynum</span> <span class='op'>~</span> <span class='va'>adist</span><span class='op'>)</span> <span class='co'>#Long to wide by transposing adist</span>
+<span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Total</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/colSums.html'>rowSums</a></span><span class='op'>(</span><span class='va'>cc_loyalty_unique</span><span class='op'>[</span>,<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"0"</span>,<span class='st'>"1"</span>,<span class='st'>"2"</span>,<span class='st'>"3"</span>,<span class='st'>"4"</span>,<span class='st'>"5"</span>,<span class='st'>"11"</span><span class='op'>)</span><span class='op'>]</span><span class='op'>)</span> <span class='co'>#Sum rows</span>
+<span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>MatchPct</span> <span class='op'>&lt;-</span> <span class='fu'>percent</span><span class='op'>(</span><span class='va'>cc_loyalty_unique</span><span class='op'>[</span>,<span class='fl'>3</span><span class='op'>]</span> <span class='op'>/</span> <span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Total</span><span class='op'>)</span>
+
+<span class='va'>cc_loyalty_unique_80</span> <span class='op'>&lt;-</span> <span class='va'>cc_loyalty_unique</span> <span class='op'>%&gt;%</span> 
+  <span class='fu'><a href='https://rdrr.io/r/stats/filter.html'>filter</a></span> <span class='op'>(</span><span class='va'>MatchPct</span> <span class='op'>&gt;=</span> <span class='st'>"80.00%"</span><span class='op'>)</span>
+<span class='fu'>n_distinct</span><span class='op'>(</span><span class='va'>cc_loyalty_unique_80</span><span class='op'>$</span><span class='va'>last4ccnum</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>[1] 30</code></pre>
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'>n_distinct</span><span class='op'>(</span><span class='va'>cc_loyalty_unique_80</span><span class='op'>$</span><span class='va'>loyaltynum</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>[1] 29</code></pre>
+</div>
 <div class="layout-chunk" data-layout="l-body">
 <details>
 <summary>
@@ -1569,9 +1722,9 @@ Show code
 </code></pre>
 </div>
 </details>
-<p><img src="assignment_files/figure-html5/unnamed-chunk-2-1.png" width="624" /></p>
+<p><img src="assignment_files/figure-html5/GPS-data-manipulation-1.png" width="624" /></p>
 </div>
-<h2 id="data-exploration-analysis">2. Data Exploration Analysis</h2>
+<h2 id="data-exploration-analysis">3. Data Exploration Analysis</h2>
 <hr />
 <p><strong>Questions</strong></p>
 <p>1 –– Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words.</p>
@@ -1636,9 +1789,9 @@ Show code
 </code></pre>
 </div>
 </details>
-<p><img src="assignment_files/figure-html5/unnamed-chunk-4-1.png" width="624" /></p>
+<p><img src="assignment_files/figure-html5/unnamed-chunk-2-1.png" width="624" /></p>
 </div>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>
