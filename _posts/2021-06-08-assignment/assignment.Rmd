@@ -54,7 +54,7 @@ https://vast-challenge.github.io/2021/MC2.html
 ## 1.	Data Understanding
 We start by loading all the necessary datasets provided in VAST Challenge 2021 Mini-Challenge 2.
 
-```{r load-all-datasets}
+```{r load-all-datasets, echo = T, results = 'hide'}
 
 # Loading all datasets and image
 cc <- readr::read_csv("data/cc_data.csv") # Add credit card data
@@ -78,9 +78,10 @@ str(cc)
 
 While exploring these four columns, the date format within the timestamp were in a MM-DD-YYYY H:M format. We will ensure that R understands this format.
 
-```{r readjust-cc-timestamp}
+```{r cc-data-cleaning}
 
-cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT")
+cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT") #Readjust CC timestamp
+cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
 
 ```
 
@@ -94,9 +95,10 @@ str(loyalty)
 ```
 Though the loyalty data has a similar structure to the credit card data, there are notable differences. Apart from the difference in the last column, the timestamp is in a MM-DD-YYYY format. This is a slight difference to the credit card data. We will now make similar adjustments to the timestamp column.
 
-```{r readjust-loyalty-timestamp}
+```{r loyalty-data-cleaning}
 
-loyalty$timestamp <- as.POSIXct(loyalty$timestamp, format = "%m/%d/%Y", tz = "GMT")
+loyalty$timestamp <- as.POSIXct(loyalty$timestamp, format = "%m/%d/%Y", tz = "GMT") #Readjust loyalty timestamp
+loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
 
 ```
 
@@ -118,6 +120,7 @@ We will now attempt to find matching rows between the cc and loyalty data. We wi
 cc <- tibble::rowid_to_column(cc, "ID") #Create a numeric id column
 loyalty <- tibble::rowid_to_column(loyalty, "ID") #Create a numeric id column
 cc$date <- as.Date(cc$timestamp) #Create a separate column just for dates in the cc data
+cc$hour <- as.numeric(format(cc$timestamp,"%H")) #Create a separate column just for hours in the cc data
 cc$concat <- paste(cc$date,cc$location,cc$price) #Create a separate column of unique values using concatenated values in the cc data
 loyalty$concat <- paste(loyalty$timestamp,loyalty$location,loyalty$price) #Create a separate column of unique values using concatenated values in the loyalty data
 dist.concat <- adist(cc$concat,loyalty$concat, partial = TRUE, ignore.case = TRUE) #Creates a matrix with the Standard Levenshtein distance between both newly created concat columns
@@ -146,11 +149,13 @@ Let's now extract the matching credit card-loyalty pairs according to their dist
 ```{r extract-pairs}
 
 cc_loyalty_unique <- dcast(cc_loyalty, last4ccnum + loyaltynum ~ adist) #Long to wide by transposing adist
-cc_loyalty_unique$Total <- rowSums(cc_loyalty_unique[,c("0","1","2","3","4","5","11")]) #Sum rows
-cc_loyalty_unique$MatchPct <- percent(cc_loyalty_unique[,3] / cc_loyalty_unique$Total)
+cc_loyalty_unique$Total <- rowSums(cc_loyalty_unique[,c("0","1","2","3","4","5","11")]) #Sum all rows
+cc_loyalty_unique$Sum01 <- rowSums(cc_loyalty_unique[,c("0","1")]) #Sum only column 1 and 2
+cc_loyalty_unique$MatchPctTotal <- percent(cc_loyalty_unique[,3] / cc_loyalty_unique$Total) #Calc % of perfect (0) matches against Total
+cc_loyalty_unique$MatchPct01 <- percent(cc_loyalty_unique$Sum01 / cc_loyalty_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
 
 cc_loyalty_unique_80 <- cc_loyalty_unique %>% 
-  filter (MatchPct >= "80.00%")
+  filter (MatchPct01 >= "80.00%")
 n_distinct(cc_loyalty_unique_80$last4ccnum)
 n_distinct(cc_loyalty_unique_80$loyaltynum)
 
@@ -226,6 +231,56 @@ mapping_spots
 
 Provide your answer and corresponding images here.
 
+1a. Using purely the credit card data, let's examine the locations by date using a calendar heatmap.
+
+```{r}
+
+cc_calendar <- cc %>% count(date, location)
+cc_calendar_ggplot <- ggplot(complete(cc_calendar, date, location), aes(x = date, y = location)) + 
+  geom_tile(aes(fill = n), color = "white", size = 0.1) +
+  scale_fill_gradient(low = "light grey", high = "black", na.value = "light grey") +
+  scale_x_date(date_labels = "%a \n %d %b", 
+               date_breaks = "1 day") +
+  scale_y_discrete(limits=rev) +
+  labs(title = "Calendar Heatmap of Location Visit Frequency By Date",
+       fill = "Frequency \n Of Visit") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust=0.5),
+        panel.border = element_blank(), 
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+
+cc_calendar_ggplot
+
+loc1 <- "Katerina's Cafe"
+cc_calendar_one <- cc %>%
+  filter(location == loc1) %>%
+  count(date,hour)
+  
+cc_calendar_ggplot_one <-  ggplot(complete(cc_calendar_one, date, hour), 
+    aes(x = date, y = hour)) + 
+  geom_tile(aes(fill = n), color = "white", size = 0.1) +
+  scale_fill_gradient(low = "light grey", high = "black", na.value = "light grey") +
+  scale_x_date(date_labels = "%a \n %d %b", 
+               date_breaks = "1 day") +
+  scale_y_reverse() +
+  labs(title = paste(loc1,"Visit Frequency By Date And Hour"),
+       fill = "Frequency \n Of Visit") +
+  theme_bw() +
+  theme(plot.title = element_text(hjust=0.5),
+        panel.border = element_blank(), 
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(),
+        axis.title.x = element_blank(),
+        axis.title.y = element_blank())
+
+cc_calendar_ggplot_one
+
+```
+
+
 2 – Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
 
 Provide your answer and corresponding images here.
@@ -246,12 +301,7 @@ Provide your answer and corresponding images here.
 
 Provide your answer here.
 
-```{r}
 
-2 + 2
-Sys.timezone(location = TRUE)
-
-```
 
 
 
@@ -283,4 +333,71 @@ mapping
 
 ```
 
+
+
+
+
+```{r}
+
+structure(list(Tissue = structure(c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
+1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 
+2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
+2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 
+3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 
+4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 
+4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 
+4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 
+5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 
+5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L), .Label = c("FB", 
+"SOG", "MG", "HG", "MT"), class = "factor"), Transcript_Count = c(64, 
+36, 35, 42, 66, 122, 62, 40, 34, 46, 40, 36, 41, 37, 36, 37, 
+40, 35, 38, 40, 53, 37, 36, 36, 68, 40, 40, 116, 84, 149, 45, 
+72, 42, 65, 78, 37, 62, 35, 35, 43, 38, 152, 37, 60, 36, 66, 
+40, 60, 45, 35, 36, 35, 129, 193, 153, 420, 247, 357, 237, 343, 
+199, 484, 112, 464, 244, 150, 127, 151, 247, 152, 238, 246, 127, 
+127, 120, 182, 245, 128, 388, 279, 246, 139, 120, 120, 120, 146, 
+119, 143, 144, 133, 126, 133, 143, 143, 218, 131, 121, 120, 119, 
+124, 127, 119, 124, 124, 119, 224, 306, 387, 102, 108, 122, 136, 
+186, 373, 85, 151, 156, 83, 161, 127, 286, 135, 82, 180, 150, 
+158, 157, 76, 142, 95, 79, 81, 78, 79, 77, 183, 88, 99, 189, 
+356, 162, 150, 125, 110, 96, 98, 88, 91, 100, 93, 101, 150, 90, 
+88, 193, 96, 100, 336, 275, 410, 108, 225, 103, 187, 237, 90, 
+163, 131, 100, 92, 427, 90, 171, 88, 190, 102, 175, 109, 107, 
+80, 97, 87, 72, 256, 185, 144, 266, 233, 150, 83, 106, 133, 133, 
+133, 69, 217, 70, 134, 131, 101, 121, 58, 67, 65, 61, 58, 64, 
+64, 64, 65, 58, 57), GO.ID = structure(c(1L, 2L, 3L, 4L, 5L, 
+6L, 7L, 8L, 9L, 10L, 11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 
+19L, 20L, 21L, 22L, 23L, 24L, 25L, 26L, 27L, 28L, 29L, 30L, 31L, 
+32L, 33L, 34L, 35L, 36L, 37L, 38L, 39L, 40L, 41L, 42L, 43L, 44L, 
+45L, 46L, 47L, 48L, 49L, 50L, 51L, 52L, 19L, 9L, 10L, 6L, 37L, 
+35L, 8L, 29L, 39L, 42L, 53L, 30L, 34L, 31L, 22L, 49L, 25L, 21L, 
+1L, 46L, 43L, 36L, 12L, 48L, 5L, 41L, 28L, 32L, 7L, 40L, 23L, 
+15L, 18L, 33L, 38L, 20L, 47L, 26L, 54L, 11L, 27L, 17L, 44L, 13L, 
+14L, 51L, 3L, 24L, 16L, 52L, 2L, 45L, 50L, 29L, 6L, 42L, 9L, 
+39L, 8L, 37L, 35L, 30L, 10L, 1L, 34L, 49L, 25L, 21L, 28L, 7L, 
+31L, 32L, 48L, 46L, 5L, 27L, 44L, 4L, 47L, 40L, 17L, 33L, 20L, 
+1L, 2L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 13L, 14L, 16L, 17L, 
+19L, 20L, 21L, 22L, 24L, 25L, 26L, 27L, 28L, 29L, 30L, 31L, 32L, 
+33L, 34L, 35L, 36L, 37L, 39L, 40L, 41L, 42L, 43L, 44L, 45L, 46L, 
+47L, 48L, 49L, 37L, 9L, 8L, 39L, 10L, 30L, 29L, 35L, 42L, 6L, 
+32L, 21L, 7L, 5L, 25L, 34L, 31L, 28L, 49L, 46L, 1L, 48L, 44L, 
+11L, 40L, 47L, 55L, 26L, 27L, 17L, 20L, 33L, 13L, 16L), .Label = c("GO:0006139", 
+"GO:0006351", "GO:0006355", "GO:0006508", "GO:0006725", "GO:0006807", 
+"GO:0006810", "GO:0007154", "GO:0007165", "GO:0009058", "GO:0009059", 
+"GO:0009889", "GO:0010467", "GO:0010468", "GO:0010556", "GO:0016070", 
+"GO:0018130", "GO:0019219", "GO:0019222", "GO:0019438", "GO:0019538", 
+"GO:0031323", "GO:0031326", "GO:0032774", "GO:0034641", "GO:0034645", 
+"GO:0034654", "GO:0043170", "GO:0044237", "GO:0044238", "GO:0044249", 
+"GO:0044260", "GO:0044271", "GO:0046483", "GO:0050794", "GO:0051171", 
+"GO:0051234", "GO:0051252", "GO:0051716", "GO:0055085", "GO:0060255", 
+"GO:0071704", "GO:0080090", "GO:0090304", "GO:0097659", "GO:1901360", 
+"GO:1901362", "GO:1901564", "GO:1901576", "GO:1903506", "GO:2000112", 
+"GO:2001141", "GO:0003008", "GO:0006811", "GO:0006259"), class = "factor")), row.names = c(NA, 
+-212L), class = "data.frame")
+
+```
 

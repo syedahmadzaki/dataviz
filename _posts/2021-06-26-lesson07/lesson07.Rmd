@@ -1,0 +1,151 @@
+---
+title: "Lesson07 - Basics in R Programming"
+description: |
+  An in-class exercise in exploring the foundations of R programming
+author:
+  - name: Syed Ahmad Zaki
+    url: https://www.google.com/
+date: 06-26-2021
+output:
+  distill::distill_article:
+    self_contained: false
+---
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, error = FALSE)
+
+```
+
+## Installing and Launching R Packages
+
+Lesson 1 to 6 delved into Tableau and its intricacies. Now in Lesson 7, we will delve into the world of R programming and the task of being a tidy data scientist.
+
+Installing and loading the required libraries
+
+```{r load-packages, echo=TRUE, eval=TRUE, warning=FALSE}
+
+packages = c('DT','ggiraph','plotly','tidyverse')
+
+for (p in packages) {
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+## Importing And Viewing Data
+
+```{r import-data}
+
+exam_data <- read_csv("data/Exam_data.csv")
+head(exam_data)
+
+```
+
+## Comparing Base R Histogram vs ggplot  
+
+```{r compare-packages}
+
+hist(exam_data$MATHS)
+ggplot(exam_data, aes(x=MATHS)) +
+  geom_histogram(bins=10,
+                 boundary=100,
+                 color="black",
+                 fill="grey") +
+  ggtitle("Distribution of Maths scores")
+
+```
+## Simple Histogram
+
+```{r simple-histogram}
+
+ggplot(exam_data,
+       aes(x=RACE)) +
+  geom_bar()
+
+```
+## Dotplots With Fill Mapping
+
+```{r dotplot-fill-mapping}
+
+ggplot(exam_data,
+       aes(x=MATHS,
+           fill=RACE)) +
+  geom_dotplot(binwidth = 2.5,
+               dotsize = 0.5) +
+  scale_y_continuous(NULL,
+                     breaks=NULL)
+
+```
+## Histogram With Fill Mapping
+
+```{r histo-fill-mapping}
+
+ggplot(exam_data,
+       aes(x=MATHS,
+           fill=GENDER)) +
+  geom_histogram(bins=20,
+                 color="grey30")
+
+```
+## Combining Geom Objects
+
+```{r combine-geom-obj}
+
+ggplot(exam_data,
+       aes(y=MATHS,
+           x= GENDER)) +
+  geom_jitter(size=0.5)  +
+  geom_boxplot()
+
+
+```
+## GGIRAPH With Tooltip
+
+```{r ggiraph-w-tooltip}
+
+p <- ggplot(exam_data,
+            aes(x=MATHS)) +
+  geom_dotplot_interactive(
+    aes(tooltip = ID),
+    stackgroups = TRUE,
+    binwidth = 1,
+    method = "histodot") +
+  scale_y_continuous(NULL,
+                     breaks = NULL)
+
+girafe(
+  ggobj = p,
+  width_svg = 6,
+  height_svg = 6*0.618
+)
+
+```
+
+## GGIRAPH With Tooltip & Data_ID
+
+```{r ggiraph-w-tooltip-n-dataid}
+
+p <- ggplot(exam_data,
+            aes(x = MATHS)) +
+  geom_dotplot_interactive(
+    aes(data_id = CLASS,
+        tooltip = CLASS),
+    stackgroups = TRUE,
+    binwidth = 1,
+    method = "histodot") +
+  scale_y_continuous(NULL,
+                     breaks = NULL)
+
+girafe(
+  ggobj = p,
+  width_svg = 6,
+  height_svg = 6*0.618
+)
+
+```
+
+
