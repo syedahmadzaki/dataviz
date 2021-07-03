@@ -319,7 +319,8 @@ mapping <- ggplot(gps_name %>%
   annotation_custom(rasterGrob(mc2,
     width = unit(1, "npc"),
     height = unit(1,"npc")),
-  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
+#  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + #Original searching
+  xmin = 24.82419, xmax = 24.90976, ymin = 36.04499, ymax = 36.09543) + #Prof's raster extraction
   geom_point(size = 0.1) + 
   coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
   theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis

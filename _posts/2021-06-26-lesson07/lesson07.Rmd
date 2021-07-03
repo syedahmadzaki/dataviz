@@ -9,6 +9,9 @@ date: 06-26-2021
 output:
   distill::distill_article:
     self_contained: false
+    code_folding: true
+    toc: true
+    toc_depth: 3
 ---
 
 ```{r setup, include=FALSE}
@@ -147,5 +150,180 @@ girafe(
 )
 
 ```
+
+## Creating an interactive scatter plot: plot_ly() method
+
+```{r plotly}
+
+plot_ly(data = exam_data,
+        x = ~MATHS,
+        y = ~ENGLISH)
+
+```
+
+## Adding colour to plot_ly()
+
+```{r plotly-colour}
+
+plot_ly(data = exam_data,
+        x = ~ENGLISH,
+        y = ~MATHS,
+        color = ~RACE)
+
+```
+
+## Changing colour in plot_ly(), according to ColorBrewel
+
+```{r plotly-colour-colorbrewel}
+
+plot_ly(data = exam_data,
+        x = ~ENGLISH,
+        y = ~MATHS,
+        color = ~RACE,
+        colors = "Set1")
+
+```
+
+## Customising colour in plot_ly()
+
+```{r plotly-customised-colour}
+
+pal <- c("red", "blue", "green")
+
+plot_ly(data = exam_data,
+        x = ~ENGLISH,
+        y = ~MATHS,
+        color = ~RACE,
+        colors = pal)
+
+```
+
+## Customising colour in plot_ly()
+
+```{r}
+
+pal <- c("red", "blue", "green")
+
+plot_ly(data = exam_data,
+        x = ~ENGLISH,
+        y = ~MATHS,
+        color = ~RACE,
+        colors = pal)
+
+```
+
+## Customising tooltip in plot_ly()
+
+```{r plotly-customised-tooltip}
+
+plot_ly(data = exam_data,
+        x = ~ENGLISH,
+        y = ~MATHS,
+        text = ~paste("Student ID:", ID,
+                      "<br>Class:", CLASS),
+        color = ~RACE,
+        colors = "Set1")
+
+```
+
+## Working with layout in plot_ly()
+
+```{r plotly-layout}
+
+plot_ly(data = exam_data,
+        x = ~ENGLISH,
+        y = ~MATHS,
+        text = ~paste("Student ID:", ID,
+                      "<br>Class:", CLASS),
+        color = ~RACE,
+        colors = "Set1") %>%
+  layout(title = 'English Score versus Maths Score',
+         xaxis = list(range = c(0,100)),
+         yaxis = list(range = c(0,100)))
+
+```
+
+## Creating an interactive scatter plot: ggplotly() method
+
+```{r}
+
+p <- ggplot(data = exam_data,
+            aes(x=MATHS,
+                y=ENGLISH)) +
+  geom_point(dotsize=1) +
+  coord_cartesian(xlim=c(0,100),
+                  ylim=c(0,100))
+ggplotly(p)
+
+```
+
+## Coordinated Multiple Unlinked Views with plotly
+
+```{r}
+
+p1 <- ggplot(data = exam_data,
+            aes(x=MATHS,
+                y=ENGLISH)) +
+  geom_point(dotsize=1) +
+  coord_cartesian(xlim=c(0,100),
+                  ylim=c(0,100))
+
+p2 <- ggplot(data = exam_data,
+            aes(x=MATHS,
+                y=SCIENCE)) +
+  geom_point(dotsize=1) +
+  coord_cartesian(xlim=c(0,100),
+                  ylim=c(0,100))
+
+subplot(ggplotly(p1),
+        ggplotly(p2))
+
+```
+
+## Coordinated Multiple Linked Views with plotly
+
+```{r}
+
+d <- highlight_key(exam_data)
+p1 <- ggplot(data = d,
+            aes(x=MATHS,
+                y=ENGLISH)) +
+  geom_point(dotsize=1) +
+  coord_cartesian(xlim=c(0,100),
+                  ylim=c(0,100))
+
+p2 <- ggplot(data = d,
+            aes(x=MATHS,
+                y=SCIENCE)) +
+  geom_point(dotsize=1) +
+  coord_cartesian(xlim=c(0,100),
+                  ylim=c(0,100))
+
+subplot(ggplotly(p1),
+        ggplotly(p2))
+
+```
+
+## Linked Brushing: Crosstalk Method with Interactive DataTable
+
+```{r}
+
+d <- highlight_key(exam_data)
+p <- ggplot(d,
+            aes(ENGLISH,
+                MATHS)) +
+  geom_point(size=1) +
+  coord_cartesian(xlim=c(0,100),
+                  ylim=c(0,100))
+
+gg <- highlight(ggplotly(p),
+                "plotly_selected")
+
+crosstalk::bscols(gg,
+                  DT::datatable(d),
+                  widths = 5)
+
+```
+
 
 

@@ -116,7 +116,7 @@ code span.wa { color: #5e5e5e; font-style: italic; } /* Warning */
   <!--/radix_placeholder_rmarkdown_metadata-->
   
   <script type="text/json" id="radix-resource-manifest">
-  {"type":"character","attributes":{},"value":["assignment_files/anchor-4.2.2/anchor.min.js","assignment_files/bowser-1.9.3/bowser.min.js","assignment_files/distill-2.2.21/template.v2.js","assignment_files/figure-html5/GPS-data-manipulation-1.png","assignment_files/figure-html5/unnamed-chunk-2-1.png","assignment_files/figure-html5/unnamed-chunk-2-2.png","assignment_files/figure-html5/unnamed-chunk-3-1.png","assignment_files/figure-html5/unnamed-chunk-4-1.png","assignment_files/figure-html5/unnamed-chunk-5-1.png","assignment_files/header-attrs-2.8/header-attrs.js","assignment_files/jquery-1.11.3/jquery.min.js","assignment_files/popper-2.6.0/popper.min.js","assignment_files/tippy-6.2.7/tippy-bundle.umd.min.js","assignment_files/tippy-6.2.7/tippy-light-border.css","assignment_files/tippy-6.2.7/tippy.css","assignment_files/tippy-6.2.7/tippy.umd.min.js","assignment_files/webcomponents-2.0.0/webcomponents.js","data/Abila.dbf","data/Abila.kml","data/Abila.prj","data/Abila.sbn","data/Abila.sbx","data/Abila.shp","data/Abila.shx","data/car-assignments.csv","data/cc_data.csv","data/gps.csv","data/Kronos Island.kmz","data/Kronos_Island.dbf","data/Kronos_Island.prj","data/Kronos_Island.sbn","data/Kronos_Island.sbx","data/Kronos_Island.shp","data/Kronos_Island.shx","data/loyalty_data.csv","img/MC2-tourist.jpg"]}
+  {"type":"character","attributes":{},"value":["assignment_files/anchor-4.2.2/anchor.min.js","assignment_files/bowser-1.9.3/bowser.min.js","assignment_files/distill-2.2.21/template.v2.js","assignment_files/figure-html5/GPS-data-manipulation-1.png","assignment_files/figure-html5/unnamed-chunk-1-1.png","assignment_files/figure-html5/unnamed-chunk-1-2.png","assignment_files/figure-html5/unnamed-chunk-2-1.png","assignment_files/figure-html5/unnamed-chunk-2-2.png","assignment_files/figure-html5/unnamed-chunk-3-1.png","assignment_files/figure-html5/unnamed-chunk-4-1.png","assignment_files/figure-html5/unnamed-chunk-5-1.png","assignment_files/header-attrs-2.8/header-attrs.js","assignment_files/jquery-1.11.3/jquery.min.js","assignment_files/popper-2.6.0/popper.min.js","assignment_files/tippy-6.2.7/tippy-bundle.umd.min.js","assignment_files/tippy-6.2.7/tippy-light-border.css","assignment_files/tippy-6.2.7/tippy.css","assignment_files/tippy-6.2.7/tippy.umd.min.js","assignment_files/webcomponents-2.0.0/webcomponents.js","data/Abila.dbf","data/Abila.kml","data/Abila.prj","data/Abila.sbn","data/Abila.sbx","data/Abila.shp","data/Abila.shx","data/car-assignments.csv","data/cc_data.csv","data/gps.csv","data/Kronos Island.kmz","data/Kronos_Island.dbf","data/Kronos_Island.prj","data/Kronos_Island.sbn","data/Kronos_Island.sbx","data/Kronos_Island.shp","data/Kronos_Island.shx","data/loyalty_data.csv","img/MC2-tourist.jpg"]}
   </script>
   <!--radix_placeholder_navigation_in_header-->
   <!--/radix_placeholder_navigation_in_header-->
@@ -1563,7 +1563,8 @@ Show code
 Show code
 </summary>
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/as.POSIXlt.html'>as.POSIXct</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span>, format <span class='op'>=</span> <span class='st'>"%m/%d/%Y  %H:%M"</span>, tz <span class='op'>=</span> <span class='st'>"GMT"</span><span class='op'>)</span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/as.POSIXlt.html'>as.POSIXct</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span>, format <span class='op'>=</span> <span class='st'>"%m/%d/%Y  %H:%M"</span>, tz <span class='op'>=</span> <span class='st'>"GMT"</span><span class='op'>)</span> <span class='co'>#Readjust CC timestamp</span>
+<span class='va'>cc</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/grep.html'>grep</a></span><span class='op'>(</span><span class='st'>"Katerina"</span>, <span class='va'>cc</span><span class='op'>$</span><span class='va'>location</span><span class='op'>)</span>,<span class='fl'>2</span><span class='op'>]</span> <span class='op'>&lt;-</span> <span class='st'>"Katerina's Cafe"</span> <span class='co'>#Replace unique characters in Katerina's Cafe</span>
 </code></pre>
 </div>
 </details>
@@ -1600,7 +1601,8 @@ Show code
 Show code
 </summary>
 <div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>loyalty</span><span class='op'>$</span><span class='va'>timestamp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/as.POSIXlt.html'>as.POSIXct</a></span><span class='op'>(</span><span class='va'>loyalty</span><span class='op'>$</span><span class='va'>timestamp</span>, format <span class='op'>=</span> <span class='st'>"%m/%d/%Y"</span>, tz <span class='op'>=</span> <span class='st'>"GMT"</span><span class='op'>)</span>
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>loyalty</span><span class='op'>$</span><span class='va'>timestamp</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/as.POSIXlt.html'>as.POSIXct</a></span><span class='op'>(</span><span class='va'>loyalty</span><span class='op'>$</span><span class='va'>timestamp</span>, format <span class='op'>=</span> <span class='st'>"%m/%d/%Y"</span>, tz <span class='op'>=</span> <span class='st'>"GMT"</span><span class='op'>)</span> <span class='co'>#Readjust loyalty timestamp</span>
+<span class='va'>loyalty</span><span class='op'>[</span><span class='fu'><a href='https://rdrr.io/r/base/grep.html'>grep</a></span><span class='op'>(</span><span class='st'>"Katerina"</span>, <span class='va'>loyalty</span><span class='op'>$</span><span class='va'>location</span><span class='op'>)</span>,<span class='fl'>2</span><span class='op'>]</span> <span class='op'>&lt;-</span> <span class='st'>"Katerina's Cafe"</span> <span class='co'>#Replace unique characters in Katerina's Cafe</span>
 </code></pre>
 </div>
 </details>
@@ -1617,6 +1619,7 @@ Show code
 <pre class="sourceCode r"><code class="sourceCode r"><span class='va'>cc</span> <span class='op'>&lt;-</span> <span class='fu'>tibble</span><span class='fu'>::</span><span class='fu'><a href='https://tibble.tidyverse.org/reference/rownames.html'>rowid_to_column</a></span><span class='op'>(</span><span class='va'>cc</span>, <span class='st'>"ID"</span><span class='op'>)</span> <span class='co'>#Create a numeric id column</span>
 <span class='va'>loyalty</span> <span class='op'>&lt;-</span> <span class='fu'>tibble</span><span class='fu'>::</span><span class='fu'><a href='https://tibble.tidyverse.org/reference/rownames.html'>rowid_to_column</a></span><span class='op'>(</span><span class='va'>loyalty</span>, <span class='st'>"ID"</span><span class='op'>)</span> <span class='co'>#Create a numeric id column</span>
 <span class='va'>cc</span><span class='op'>$</span><span class='va'>date</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/as.Date.html'>as.Date</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span><span class='op'>)</span> <span class='co'>#Create a separate column just for dates in the cc data</span>
+<span class='va'>cc</span><span class='op'>$</span><span class='va'>hour</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/numeric.html'>as.numeric</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/format.html'>format</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>timestamp</span>,<span class='st'>"%H"</span><span class='op'>)</span><span class='op'>)</span> <span class='co'>#Create a separate column just for hours in the cc data</span>
 <span class='va'>cc</span><span class='op'>$</span><span class='va'>concat</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>date</span>,<span class='va'>cc</span><span class='op'>$</span><span class='va'>location</span>,<span class='va'>cc</span><span class='op'>$</span><span class='va'>price</span><span class='op'>)</span> <span class='co'>#Create a separate column of unique values using concatenated values in the cc data</span>
 <span class='va'>loyalty</span><span class='op'>$</span><span class='va'>concat</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste</a></span><span class='op'>(</span><span class='va'>loyalty</span><span class='op'>$</span><span class='va'>timestamp</span>,<span class='va'>loyalty</span><span class='op'>$</span><span class='va'>location</span>,<span class='va'>loyalty</span><span class='op'>$</span><span class='va'>price</span><span class='op'>)</span> <span class='co'>#Create a separate column of unique values using concatenated values in the loyalty data</span>
 <span class='va'>dist.concat</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/utils/adist.html'>adist</a></span><span class='op'>(</span><span class='va'>cc</span><span class='op'>$</span><span class='va'>concat</span>,<span class='va'>loyalty</span><span class='op'>$</span><span class='va'>concat</span>, partial <span class='op'>=</span> <span class='cn'>TRUE</span>, ignore.case <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span> <span class='co'>#Creates a matrix with the Standard Levenshtein distance between both newly created concat columns</span>
@@ -1649,16 +1652,18 @@ Show code
 </summary>
 <div class="sourceCode">
 <pre class="sourceCode r"><code class="sourceCode r"><span class='va'>cc_loyalty_unique</span> <span class='op'>&lt;-</span> <span class='fu'>dcast</span><span class='op'>(</span><span class='va'>cc_loyalty</span>, <span class='va'>last4ccnum</span> <span class='op'>+</span> <span class='va'>loyaltynum</span> <span class='op'>~</span> <span class='va'>adist</span><span class='op'>)</span> <span class='co'>#Long to wide by transposing adist</span>
-<span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Total</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/colSums.html'>rowSums</a></span><span class='op'>(</span><span class='va'>cc_loyalty_unique</span><span class='op'>[</span>,<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"0"</span>,<span class='st'>"1"</span>,<span class='st'>"2"</span>,<span class='st'>"3"</span>,<span class='st'>"4"</span>,<span class='st'>"5"</span>,<span class='st'>"11"</span><span class='op'>)</span><span class='op'>]</span><span class='op'>)</span> <span class='co'>#Sum rows</span>
-<span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>MatchPct</span> <span class='op'>&lt;-</span> <span class='fu'>percent</span><span class='op'>(</span><span class='va'>cc_loyalty_unique</span><span class='op'>[</span>,<span class='fl'>3</span><span class='op'>]</span> <span class='op'>/</span> <span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Total</span><span class='op'>)</span>
+<span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Total</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/colSums.html'>rowSums</a></span><span class='op'>(</span><span class='va'>cc_loyalty_unique</span><span class='op'>[</span>,<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"0"</span>,<span class='st'>"1"</span>,<span class='st'>"2"</span>,<span class='st'>"3"</span>,<span class='st'>"4"</span>,<span class='st'>"5"</span>,<span class='st'>"11"</span><span class='op'>)</span><span class='op'>]</span><span class='op'>)</span> <span class='co'>#Sum all rows</span>
+<span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Sum01</span> <span class='op'>&lt;-</span> <span class='fu'><a href='https://rdrr.io/r/base/colSums.html'>rowSums</a></span><span class='op'>(</span><span class='va'>cc_loyalty_unique</span><span class='op'>[</span>,<span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"0"</span>,<span class='st'>"1"</span><span class='op'>)</span><span class='op'>]</span><span class='op'>)</span> <span class='co'>#Sum only column 1 and 2</span>
+<span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>MatchPctTotal</span> <span class='op'>&lt;-</span> <span class='fu'>percent</span><span class='op'>(</span><span class='va'>cc_loyalty_unique</span><span class='op'>[</span>,<span class='fl'>3</span><span class='op'>]</span> <span class='op'>/</span> <span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Total</span><span class='op'>)</span> <span class='co'>#Calc % of perfect (0) matches against Total</span>
+<span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>MatchPct01</span> <span class='op'>&lt;-</span> <span class='fu'>percent</span><span class='op'>(</span><span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Sum01</span> <span class='op'>/</span> <span class='va'>cc_loyalty_unique</span><span class='op'>$</span><span class='va'>Total</span><span class='op'>)</span> <span class='co'>#Calc % of perfect (0) and almost perfect (0) matches against Total</span>
 
 <span class='va'>cc_loyalty_unique_80</span> <span class='op'>&lt;-</span> <span class='va'>cc_loyalty_unique</span> <span class='op'>%&gt;%</span> 
-  <span class='fu'><a href='https://rdrr.io/r/stats/filter.html'>filter</a></span> <span class='op'>(</span><span class='va'>MatchPct</span> <span class='op'>&gt;=</span> <span class='st'>"80.00%"</span><span class='op'>)</span>
+  <span class='fu'><a href='https://rdrr.io/r/stats/filter.html'>filter</a></span> <span class='op'>(</span><span class='va'>MatchPct01</span> <span class='op'>&gt;=</span> <span class='st'>"80.00%"</span><span class='op'>)</span>
 <span class='fu'>n_distinct</span><span class='op'>(</span><span class='va'>cc_loyalty_unique_80</span><span class='op'>$</span><span class='va'>last4ccnum</span><span class='op'>)</span>
 </code></pre>
 </div>
 </details>
-<pre><code>[1] 30</code></pre>
+<pre><code>[1] 31</code></pre>
 <details>
 <summary>
 Show code
@@ -1668,7 +1673,7 @@ Show code
 </code></pre>
 </div>
 </details>
-<pre><code>[1] 29</code></pre>
+<pre><code>[1] 31</code></pre>
 </div>
 <div class="layout-chunk" data-layout="l-body">
 <details>
@@ -1729,6 +1734,68 @@ Show code
 <p><strong>Questions</strong></p>
 <p>1 –– Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words.</p>
 <p>Provide your answer and corresponding images here.</p>
+<p>1a. Using purely the credit card data, let’s examine the locations by date using a calendar heatmap.</p>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>cc_calendar</span> <span class='op'>&lt;-</span> <span class='va'>cc</span> <span class='op'>%&gt;%</span> <span class='fu'>count</span><span class='op'>(</span><span class='va'>date</span>, <span class='va'>location</span><span class='op'>)</span>
+<span class='va'>cc_calendar_ggplot</span> <span class='op'>&lt;-</span> <span class='fu'>ggplot</span><span class='op'>(</span><span class='fu'>complete</span><span class='op'>(</span><span class='va'>cc_calendar</span>, <span class='va'>date</span>, <span class='va'>location</span><span class='op'>)</span>, <span class='fu'>aes</span><span class='op'>(</span>x <span class='op'>=</span> <span class='va'>date</span>, y <span class='op'>=</span> <span class='va'>location</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>+</span> 
+  <span class='fu'>geom_tile</span><span class='op'>(</span><span class='fu'>aes</span><span class='op'>(</span>fill <span class='op'>=</span> <span class='va'>n</span><span class='op'>)</span>, color <span class='op'>=</span> <span class='st'>"white"</span>, size <span class='op'>=</span> <span class='fl'>0.1</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>scale_fill_gradient</span><span class='op'>(</span>low <span class='op'>=</span> <span class='st'>"light grey"</span>, high <span class='op'>=</span> <span class='st'>"black"</span>, na.value <span class='op'>=</span> <span class='st'>"light grey"</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>scale_x_date</span><span class='op'>(</span>date_labels <span class='op'>=</span> <span class='st'>"%a \n %d %b"</span>, 
+               date_breaks <span class='op'>=</span> <span class='st'>"1 day"</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>scale_y_discrete</span><span class='op'>(</span>limits<span class='op'>=</span><span class='va'>rev</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>labs</span><span class='op'>(</span>title <span class='op'>=</span> <span class='st'>"Calendar Heatmap of Location Visit Frequency By Date"</span>,
+       fill <span class='op'>=</span> <span class='st'>"Frequency \n Of Visit"</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>theme_bw</span><span class='op'>(</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>theme</span><span class='op'>(</span>plot.title <span class='op'>=</span> <span class='fu'>element_text</span><span class='op'>(</span>hjust<span class='op'>=</span><span class='fl'>0.5</span><span class='op'>)</span>,
+        panel.border <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>, 
+        panel.grid.major <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>, 
+        panel.grid.minor <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>,
+        axis.title.x <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>,
+        axis.title.y <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span><span class='op'>)</span>
+
+<span class='va'>cc_calendar_ggplot</span>
+</code></pre>
+</div>
+</details>
+<img src="assignment_files/figure-html5/unnamed-chunk-1-1.png" width="624" />
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='va'>loc1</span> <span class='op'>&lt;-</span> <span class='st'>"Katerina's Cafe"</span>
+<span class='va'>cc_calendar_one</span> <span class='op'>&lt;-</span> <span class='va'>cc</span> <span class='op'>%&gt;%</span>
+  <span class='fu'><a href='https://rdrr.io/r/stats/filter.html'>filter</a></span><span class='op'>(</span><span class='va'>location</span> <span class='op'>==</span> <span class='va'>loc1</span><span class='op'>)</span> <span class='op'>%&gt;%</span>
+  <span class='fu'>count</span><span class='op'>(</span><span class='va'>date</span>,<span class='va'>hour</span><span class='op'>)</span>
+  
+<span class='va'>cc_calendar_ggplot_one</span> <span class='op'>&lt;-</span>  <span class='fu'>ggplot</span><span class='op'>(</span><span class='fu'>complete</span><span class='op'>(</span><span class='va'>cc_calendar_one</span>, <span class='va'>date</span>, <span class='va'>hour</span><span class='op'>)</span>, 
+    <span class='fu'>aes</span><span class='op'>(</span>x <span class='op'>=</span> <span class='va'>date</span>, y <span class='op'>=</span> <span class='va'>hour</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>+</span> 
+  <span class='fu'>geom_tile</span><span class='op'>(</span><span class='fu'>aes</span><span class='op'>(</span>fill <span class='op'>=</span> <span class='va'>n</span><span class='op'>)</span>, color <span class='op'>=</span> <span class='st'>"white"</span>, size <span class='op'>=</span> <span class='fl'>0.1</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>scale_fill_gradient</span><span class='op'>(</span>low <span class='op'>=</span> <span class='st'>"light grey"</span>, high <span class='op'>=</span> <span class='st'>"black"</span>, na.value <span class='op'>=</span> <span class='st'>"light grey"</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>scale_x_date</span><span class='op'>(</span>date_labels <span class='op'>=</span> <span class='st'>"%a \n %d %b"</span>, 
+               date_breaks <span class='op'>=</span> <span class='st'>"1 day"</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>scale_y_reverse</span><span class='op'>(</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>labs</span><span class='op'>(</span>title <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/paste.html'>paste</a></span><span class='op'>(</span><span class='va'>loc1</span>,<span class='st'>"Visit Frequency By Date And Hour"</span><span class='op'>)</span>,
+       fill <span class='op'>=</span> <span class='st'>"Frequency \n Of Visit"</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>theme_bw</span><span class='op'>(</span><span class='op'>)</span> <span class='op'>+</span>
+  <span class='fu'>theme</span><span class='op'>(</span>plot.title <span class='op'>=</span> <span class='fu'>element_text</span><span class='op'>(</span>hjust<span class='op'>=</span><span class='fl'>0.5</span><span class='op'>)</span>,
+        panel.border <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>, 
+        panel.grid.major <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>, 
+        panel.grid.minor <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>,
+        axis.title.x <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>,
+        axis.title.y <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span><span class='op'>)</span>
+
+<span class='va'>cc_calendar_ggplot_one</span>
+</code></pre>
+</div>
+</details>
+<p><img src="assignment_files/figure-html5/unnamed-chunk-1-2.png" width="624" /></p>
+</div>
 <p>2 – Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.</p>
 <p>Provide your answer and corresponding images here.</p>
 <p>3 – Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.</p>
@@ -1739,28 +1806,6 @@ Show code
 <p>Provide your answer and corresponding images here.</p>
 <p>6 –– If you solved this mini-challenge in 2014, how did you approach it differently this year?</p>
 <p>Provide your answer here.</p>
-<div class="layout-chunk" data-layout="l-body">
-<details>
-<summary>
-Show code
-</summary>
-<div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class='fl'>2</span> <span class='op'>+</span> <span class='fl'>2</span>
-</code></pre>
-</div>
-</details>
-<pre><code>[1] 4</code></pre>
-<details>
-<summary>
-Show code
-</summary>
-<div class="sourceCode">
-<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'><a href='https://rdrr.io/r/base/timezones.html'>Sys.timezone</a></span><span class='op'>(</span>location <span class='op'>=</span> <span class='cn'>TRUE</span><span class='op'>)</span>
-</code></pre>
-</div>
-</details>
-<pre><code>[1] &quot;Asia/Kuala_Lumpur&quot;</code></pre>
-</div>
 <p>Testing the use of a static image as background and showcasing the gps data on it using ggplot</p>
 <div class="layout-chunk" data-layout="l-body">
 <details>
@@ -1775,7 +1820,8 @@ Show code
   <span class='fu'>annotation_custom</span><span class='op'>(</span><span class='fu'>rasterGrob</span><span class='op'>(</span><span class='va'>mc2</span>,
     width <span class='op'>=</span> <span class='fu'>unit</span><span class='op'>(</span><span class='fl'>1</span>, <span class='st'>"npc"</span><span class='op'>)</span>,
     height <span class='op'>=</span> <span class='fu'>unit</span><span class='op'>(</span><span class='fl'>1</span>,<span class='st'>"npc"</span><span class='op'>)</span><span class='op'>)</span>,
-  xmin <span class='op'>=</span> <span class='fl'>24.8244</span>, xmax <span class='op'>=</span> <span class='fl'>24.9096</span>, ymin <span class='op'>=</span> <span class='fl'>36.0453</span>, ymax <span class='op'>=</span> <span class='fl'>36.0952</span><span class='op'>)</span> <span class='op'>+</span> 
+<span class='co'>#  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + #Original searching</span>
+  xmin <span class='op'>=</span> <span class='fl'>24.82419</span>, xmax <span class='op'>=</span> <span class='fl'>24.90976</span>, ymin <span class='op'>=</span> <span class='fl'>36.04499</span>, ymax <span class='op'>=</span> <span class='fl'>36.09543</span><span class='op'>)</span> <span class='op'>+</span> <span class='co'>#Prof's raster extraction</span>
   <span class='fu'>geom_point</span><span class='op'>(</span>size <span class='op'>=</span> <span class='fl'>0.1</span><span class='op'>)</span> <span class='op'>+</span> 
   <span class='fu'>coord_fixed</span><span class='op'>(</span>xlim <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>24.8244</span>, <span class='fl'>24.9096</span><span class='op'>)</span>, ylim <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>36.0453</span>, <span class='fl'>36.0952</span><span class='op'>)</span><span class='op'>)</span> <span class='op'>+</span> <span class='co'># Fixing the scales regardless of filtering of points</span>
   <span class='fu'>theme_bw</span><span class='op'>(</span><span class='op'>)</span> <span class='op'>+</span> <span class='fu'>theme</span><span class='op'>(</span>panel.border <span class='op'>=</span> <span class='fu'>element_blank</span><span class='op'>(</span><span class='op'>)</span>, <span class='co'># Remove background and grids and reformat scales and axis</span>
@@ -1791,7 +1837,289 @@ Show code
 </details>
 <p><img src="assignment_files/figure-html5/unnamed-chunk-2-1.png" width="624" /></p>
 </div>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
+<div class="layout-chunk" data-layout="l-body">
+<details>
+<summary>
+Show code
+</summary>
+<div class="sourceCode">
+<pre class="sourceCode r"><code class="sourceCode r"><span class='fu'><a href='https://rdrr.io/r/base/structure.html'>structure</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/list.html'>list</a></span><span class='op'>(</span>Tissue <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/structure.html'>structure</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, 
+<span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, 
+<span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, 
+<span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>1L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, 
+<span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, 
+<span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, 
+<span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>2L</span>, 
+<span class='fl'>2L</span>, <span class='fl'>2L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, 
+<span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, <span class='fl'>3L</span>, 
+<span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, 
+<span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, 
+<span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>4L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, 
+<span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, 
+<span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span>, <span class='fl'>5L</span><span class='op'>)</span>, .Label <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"FB"</span>, 
+<span class='st'>"SOG"</span>, <span class='st'>"MG"</span>, <span class='st'>"HG"</span>, <span class='st'>"MT"</span><span class='op'>)</span>, class <span class='op'>=</span> <span class='st'>"factor"</span><span class='op'>)</span>, Transcript_Count <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>64</span>, 
+<span class='fl'>36</span>, <span class='fl'>35</span>, <span class='fl'>42</span>, <span class='fl'>66</span>, <span class='fl'>122</span>, <span class='fl'>62</span>, <span class='fl'>40</span>, <span class='fl'>34</span>, <span class='fl'>46</span>, <span class='fl'>40</span>, <span class='fl'>36</span>, <span class='fl'>41</span>, <span class='fl'>37</span>, <span class='fl'>36</span>, <span class='fl'>37</span>, 
+<span class='fl'>40</span>, <span class='fl'>35</span>, <span class='fl'>38</span>, <span class='fl'>40</span>, <span class='fl'>53</span>, <span class='fl'>37</span>, <span class='fl'>36</span>, <span class='fl'>36</span>, <span class='fl'>68</span>, <span class='fl'>40</span>, <span class='fl'>40</span>, <span class='fl'>116</span>, <span class='fl'>84</span>, <span class='fl'>149</span>, <span class='fl'>45</span>, 
+<span class='fl'>72</span>, <span class='fl'>42</span>, <span class='fl'>65</span>, <span class='fl'>78</span>, <span class='fl'>37</span>, <span class='fl'>62</span>, <span class='fl'>35</span>, <span class='fl'>35</span>, <span class='fl'>43</span>, <span class='fl'>38</span>, <span class='fl'>152</span>, <span class='fl'>37</span>, <span class='fl'>60</span>, <span class='fl'>36</span>, <span class='fl'>66</span>, 
+<span class='fl'>40</span>, <span class='fl'>60</span>, <span class='fl'>45</span>, <span class='fl'>35</span>, <span class='fl'>36</span>, <span class='fl'>35</span>, <span class='fl'>129</span>, <span class='fl'>193</span>, <span class='fl'>153</span>, <span class='fl'>420</span>, <span class='fl'>247</span>, <span class='fl'>357</span>, <span class='fl'>237</span>, <span class='fl'>343</span>, 
+<span class='fl'>199</span>, <span class='fl'>484</span>, <span class='fl'>112</span>, <span class='fl'>464</span>, <span class='fl'>244</span>, <span class='fl'>150</span>, <span class='fl'>127</span>, <span class='fl'>151</span>, <span class='fl'>247</span>, <span class='fl'>152</span>, <span class='fl'>238</span>, <span class='fl'>246</span>, <span class='fl'>127</span>, 
+<span class='fl'>127</span>, <span class='fl'>120</span>, <span class='fl'>182</span>, <span class='fl'>245</span>, <span class='fl'>128</span>, <span class='fl'>388</span>, <span class='fl'>279</span>, <span class='fl'>246</span>, <span class='fl'>139</span>, <span class='fl'>120</span>, <span class='fl'>120</span>, <span class='fl'>120</span>, <span class='fl'>146</span>, 
+<span class='fl'>119</span>, <span class='fl'>143</span>, <span class='fl'>144</span>, <span class='fl'>133</span>, <span class='fl'>126</span>, <span class='fl'>133</span>, <span class='fl'>143</span>, <span class='fl'>143</span>, <span class='fl'>218</span>, <span class='fl'>131</span>, <span class='fl'>121</span>, <span class='fl'>120</span>, <span class='fl'>119</span>, 
+<span class='fl'>124</span>, <span class='fl'>127</span>, <span class='fl'>119</span>, <span class='fl'>124</span>, <span class='fl'>124</span>, <span class='fl'>119</span>, <span class='fl'>224</span>, <span class='fl'>306</span>, <span class='fl'>387</span>, <span class='fl'>102</span>, <span class='fl'>108</span>, <span class='fl'>122</span>, <span class='fl'>136</span>, 
+<span class='fl'>186</span>, <span class='fl'>373</span>, <span class='fl'>85</span>, <span class='fl'>151</span>, <span class='fl'>156</span>, <span class='fl'>83</span>, <span class='fl'>161</span>, <span class='fl'>127</span>, <span class='fl'>286</span>, <span class='fl'>135</span>, <span class='fl'>82</span>, <span class='fl'>180</span>, <span class='fl'>150</span>, 
+<span class='fl'>158</span>, <span class='fl'>157</span>, <span class='fl'>76</span>, <span class='fl'>142</span>, <span class='fl'>95</span>, <span class='fl'>79</span>, <span class='fl'>81</span>, <span class='fl'>78</span>, <span class='fl'>79</span>, <span class='fl'>77</span>, <span class='fl'>183</span>, <span class='fl'>88</span>, <span class='fl'>99</span>, <span class='fl'>189</span>, 
+<span class='fl'>356</span>, <span class='fl'>162</span>, <span class='fl'>150</span>, <span class='fl'>125</span>, <span class='fl'>110</span>, <span class='fl'>96</span>, <span class='fl'>98</span>, <span class='fl'>88</span>, <span class='fl'>91</span>, <span class='fl'>100</span>, <span class='fl'>93</span>, <span class='fl'>101</span>, <span class='fl'>150</span>, <span class='fl'>90</span>, 
+<span class='fl'>88</span>, <span class='fl'>193</span>, <span class='fl'>96</span>, <span class='fl'>100</span>, <span class='fl'>336</span>, <span class='fl'>275</span>, <span class='fl'>410</span>, <span class='fl'>108</span>, <span class='fl'>225</span>, <span class='fl'>103</span>, <span class='fl'>187</span>, <span class='fl'>237</span>, <span class='fl'>90</span>, 
+<span class='fl'>163</span>, <span class='fl'>131</span>, <span class='fl'>100</span>, <span class='fl'>92</span>, <span class='fl'>427</span>, <span class='fl'>90</span>, <span class='fl'>171</span>, <span class='fl'>88</span>, <span class='fl'>190</span>, <span class='fl'>102</span>, <span class='fl'>175</span>, <span class='fl'>109</span>, <span class='fl'>107</span>, 
+<span class='fl'>80</span>, <span class='fl'>97</span>, <span class='fl'>87</span>, <span class='fl'>72</span>, <span class='fl'>256</span>, <span class='fl'>185</span>, <span class='fl'>144</span>, <span class='fl'>266</span>, <span class='fl'>233</span>, <span class='fl'>150</span>, <span class='fl'>83</span>, <span class='fl'>106</span>, <span class='fl'>133</span>, <span class='fl'>133</span>, 
+<span class='fl'>133</span>, <span class='fl'>69</span>, <span class='fl'>217</span>, <span class='fl'>70</span>, <span class='fl'>134</span>, <span class='fl'>131</span>, <span class='fl'>101</span>, <span class='fl'>121</span>, <span class='fl'>58</span>, <span class='fl'>67</span>, <span class='fl'>65</span>, <span class='fl'>61</span>, <span class='fl'>58</span>, <span class='fl'>64</span>, 
+<span class='fl'>64</span>, <span class='fl'>64</span>, <span class='fl'>65</span>, <span class='fl'>58</span>, <span class='fl'>57</span><span class='op'>)</span>, GO.ID <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/structure.html'>structure</a></span><span class='op'>(</span><span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='fl'>1L</span>, <span class='fl'>2L</span>, <span class='fl'>3L</span>, <span class='fl'>4L</span>, <span class='fl'>5L</span>, 
+<span class='fl'>6L</span>, <span class='fl'>7L</span>, <span class='fl'>8L</span>, <span class='fl'>9L</span>, <span class='fl'>10L</span>, <span class='fl'>11L</span>, <span class='fl'>12L</span>, <span class='fl'>13L</span>, <span class='fl'>14L</span>, <span class='fl'>15L</span>, <span class='fl'>16L</span>, <span class='fl'>17L</span>, <span class='fl'>18L</span>, 
+<span class='fl'>19L</span>, <span class='fl'>20L</span>, <span class='fl'>21L</span>, <span class='fl'>22L</span>, <span class='fl'>23L</span>, <span class='fl'>24L</span>, <span class='fl'>25L</span>, <span class='fl'>26L</span>, <span class='fl'>27L</span>, <span class='fl'>28L</span>, <span class='fl'>29L</span>, <span class='fl'>30L</span>, <span class='fl'>31L</span>, 
+<span class='fl'>32L</span>, <span class='fl'>33L</span>, <span class='fl'>34L</span>, <span class='fl'>35L</span>, <span class='fl'>36L</span>, <span class='fl'>37L</span>, <span class='fl'>38L</span>, <span class='fl'>39L</span>, <span class='fl'>40L</span>, <span class='fl'>41L</span>, <span class='fl'>42L</span>, <span class='fl'>43L</span>, <span class='fl'>44L</span>, 
+<span class='fl'>45L</span>, <span class='fl'>46L</span>, <span class='fl'>47L</span>, <span class='fl'>48L</span>, <span class='fl'>49L</span>, <span class='fl'>50L</span>, <span class='fl'>51L</span>, <span class='fl'>52L</span>, <span class='fl'>19L</span>, <span class='fl'>9L</span>, <span class='fl'>10L</span>, <span class='fl'>6L</span>, <span class='fl'>37L</span>, 
+<span class='fl'>35L</span>, <span class='fl'>8L</span>, <span class='fl'>29L</span>, <span class='fl'>39L</span>, <span class='fl'>42L</span>, <span class='fl'>53L</span>, <span class='fl'>30L</span>, <span class='fl'>34L</span>, <span class='fl'>31L</span>, <span class='fl'>22L</span>, <span class='fl'>49L</span>, <span class='fl'>25L</span>, <span class='fl'>21L</span>, 
+<span class='fl'>1L</span>, <span class='fl'>46L</span>, <span class='fl'>43L</span>, <span class='fl'>36L</span>, <span class='fl'>12L</span>, <span class='fl'>48L</span>, <span class='fl'>5L</span>, <span class='fl'>41L</span>, <span class='fl'>28L</span>, <span class='fl'>32L</span>, <span class='fl'>7L</span>, <span class='fl'>40L</span>, <span class='fl'>23L</span>, 
+<span class='fl'>15L</span>, <span class='fl'>18L</span>, <span class='fl'>33L</span>, <span class='fl'>38L</span>, <span class='fl'>20L</span>, <span class='fl'>47L</span>, <span class='fl'>26L</span>, <span class='fl'>54L</span>, <span class='fl'>11L</span>, <span class='fl'>27L</span>, <span class='fl'>17L</span>, <span class='fl'>44L</span>, <span class='fl'>13L</span>, 
+<span class='fl'>14L</span>, <span class='fl'>51L</span>, <span class='fl'>3L</span>, <span class='fl'>24L</span>, <span class='fl'>16L</span>, <span class='fl'>52L</span>, <span class='fl'>2L</span>, <span class='fl'>45L</span>, <span class='fl'>50L</span>, <span class='fl'>29L</span>, <span class='fl'>6L</span>, <span class='fl'>42L</span>, <span class='fl'>9L</span>, 
+<span class='fl'>39L</span>, <span class='fl'>8L</span>, <span class='fl'>37L</span>, <span class='fl'>35L</span>, <span class='fl'>30L</span>, <span class='fl'>10L</span>, <span class='fl'>1L</span>, <span class='fl'>34L</span>, <span class='fl'>49L</span>, <span class='fl'>25L</span>, <span class='fl'>21L</span>, <span class='fl'>28L</span>, <span class='fl'>7L</span>, 
+<span class='fl'>31L</span>, <span class='fl'>32L</span>, <span class='fl'>48L</span>, <span class='fl'>46L</span>, <span class='fl'>5L</span>, <span class='fl'>27L</span>, <span class='fl'>44L</span>, <span class='fl'>4L</span>, <span class='fl'>47L</span>, <span class='fl'>40L</span>, <span class='fl'>17L</span>, <span class='fl'>33L</span>, <span class='fl'>20L</span>, 
+<span class='fl'>1L</span>, <span class='fl'>2L</span>, <span class='fl'>4L</span>, <span class='fl'>5L</span>, <span class='fl'>6L</span>, <span class='fl'>7L</span>, <span class='fl'>8L</span>, <span class='fl'>9L</span>, <span class='fl'>10L</span>, <span class='fl'>11L</span>, <span class='fl'>13L</span>, <span class='fl'>14L</span>, <span class='fl'>16L</span>, <span class='fl'>17L</span>, 
+<span class='fl'>19L</span>, <span class='fl'>20L</span>, <span class='fl'>21L</span>, <span class='fl'>22L</span>, <span class='fl'>24L</span>, <span class='fl'>25L</span>, <span class='fl'>26L</span>, <span class='fl'>27L</span>, <span class='fl'>28L</span>, <span class='fl'>29L</span>, <span class='fl'>30L</span>, <span class='fl'>31L</span>, <span class='fl'>32L</span>, 
+<span class='fl'>33L</span>, <span class='fl'>34L</span>, <span class='fl'>35L</span>, <span class='fl'>36L</span>, <span class='fl'>37L</span>, <span class='fl'>39L</span>, <span class='fl'>40L</span>, <span class='fl'>41L</span>, <span class='fl'>42L</span>, <span class='fl'>43L</span>, <span class='fl'>44L</span>, <span class='fl'>45L</span>, <span class='fl'>46L</span>, 
+<span class='fl'>47L</span>, <span class='fl'>48L</span>, <span class='fl'>49L</span>, <span class='fl'>37L</span>, <span class='fl'>9L</span>, <span class='fl'>8L</span>, <span class='fl'>39L</span>, <span class='fl'>10L</span>, <span class='fl'>30L</span>, <span class='fl'>29L</span>, <span class='fl'>35L</span>, <span class='fl'>42L</span>, <span class='fl'>6L</span>, 
+<span class='fl'>32L</span>, <span class='fl'>21L</span>, <span class='fl'>7L</span>, <span class='fl'>5L</span>, <span class='fl'>25L</span>, <span class='fl'>34L</span>, <span class='fl'>31L</span>, <span class='fl'>28L</span>, <span class='fl'>49L</span>, <span class='fl'>46L</span>, <span class='fl'>1L</span>, <span class='fl'>48L</span>, <span class='fl'>44L</span>, 
+<span class='fl'>11L</span>, <span class='fl'>40L</span>, <span class='fl'>47L</span>, <span class='fl'>55L</span>, <span class='fl'>26L</span>, <span class='fl'>27L</span>, <span class='fl'>17L</span>, <span class='fl'>20L</span>, <span class='fl'>33L</span>, <span class='fl'>13L</span>, <span class='fl'>16L</span><span class='op'>)</span>, .Label <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='st'>"GO:0006139"</span>, 
+<span class='st'>"GO:0006351"</span>, <span class='st'>"GO:0006355"</span>, <span class='st'>"GO:0006508"</span>, <span class='st'>"GO:0006725"</span>, <span class='st'>"GO:0006807"</span>, 
+<span class='st'>"GO:0006810"</span>, <span class='st'>"GO:0007154"</span>, <span class='st'>"GO:0007165"</span>, <span class='st'>"GO:0009058"</span>, <span class='st'>"GO:0009059"</span>, 
+<span class='st'>"GO:0009889"</span>, <span class='st'>"GO:0010467"</span>, <span class='st'>"GO:0010468"</span>, <span class='st'>"GO:0010556"</span>, <span class='st'>"GO:0016070"</span>, 
+<span class='st'>"GO:0018130"</span>, <span class='st'>"GO:0019219"</span>, <span class='st'>"GO:0019222"</span>, <span class='st'>"GO:0019438"</span>, <span class='st'>"GO:0019538"</span>, 
+<span class='st'>"GO:0031323"</span>, <span class='st'>"GO:0031326"</span>, <span class='st'>"GO:0032774"</span>, <span class='st'>"GO:0034641"</span>, <span class='st'>"GO:0034645"</span>, 
+<span class='st'>"GO:0034654"</span>, <span class='st'>"GO:0043170"</span>, <span class='st'>"GO:0044237"</span>, <span class='st'>"GO:0044238"</span>, <span class='st'>"GO:0044249"</span>, 
+<span class='st'>"GO:0044260"</span>, <span class='st'>"GO:0044271"</span>, <span class='st'>"GO:0046483"</span>, <span class='st'>"GO:0050794"</span>, <span class='st'>"GO:0051171"</span>, 
+<span class='st'>"GO:0051234"</span>, <span class='st'>"GO:0051252"</span>, <span class='st'>"GO:0051716"</span>, <span class='st'>"GO:0055085"</span>, <span class='st'>"GO:0060255"</span>, 
+<span class='st'>"GO:0071704"</span>, <span class='st'>"GO:0080090"</span>, <span class='st'>"GO:0090304"</span>, <span class='st'>"GO:0097659"</span>, <span class='st'>"GO:1901360"</span>, 
+<span class='st'>"GO:1901362"</span>, <span class='st'>"GO:1901564"</span>, <span class='st'>"GO:1901576"</span>, <span class='st'>"GO:1903506"</span>, <span class='st'>"GO:2000112"</span>, 
+<span class='st'>"GO:2001141"</span>, <span class='st'>"GO:0003008"</span>, <span class='st'>"GO:0006811"</span>, <span class='st'>"GO:0006259"</span><span class='op'>)</span>, class <span class='op'>=</span> <span class='st'>"factor"</span><span class='op'>)</span><span class='op'>)</span>, row.names <span class='op'>=</span> <span class='fu'><a href='https://rdrr.io/r/base/c.html'>c</a></span><span class='op'>(</span><span class='cn'>NA</span>, 
+<span class='op'>-</span><span class='fl'>212L</span><span class='op'>)</span>, class <span class='op'>=</span> <span class='st'>"data.frame"</span><span class='op'>)</span>
+</code></pre>
+</div>
+</details>
+<pre><code>    Tissue Transcript_Count      GO.ID
+1       FB               64 GO:0006139
+2       FB               36 GO:0006351
+3       FB               35 GO:0006355
+4       FB               42 GO:0006508
+5       FB               66 GO:0006725
+6       FB              122 GO:0006807
+7       FB               62 GO:0006810
+8       FB               40 GO:0007154
+9       FB               34 GO:0007165
+10      FB               46 GO:0009058
+11      FB               40 GO:0009059
+12      FB               36 GO:0009889
+13      FB               41 GO:0010467
+14      FB               37 GO:0010468
+15      FB               36 GO:0010556
+16      FB               37 GO:0016070
+17      FB               40 GO:0018130
+18      FB               35 GO:0019219
+19      FB               38 GO:0019222
+20      FB               40 GO:0019438
+21      FB               53 GO:0019538
+22      FB               37 GO:0031323
+23      FB               36 GO:0031326
+24      FB               36 GO:0032774
+25      FB               68 GO:0034641
+26      FB               40 GO:0034645
+27      FB               40 GO:0034654
+28      FB              116 GO:0043170
+29      FB               84 GO:0044237
+30      FB              149 GO:0044238
+31      FB               45 GO:0044249
+32      FB               72 GO:0044260
+33      FB               42 GO:0044271
+34      FB               65 GO:0046483
+35      FB               78 GO:0050794
+36      FB               37 GO:0051171
+37      FB               62 GO:0051234
+38      FB               35 GO:0051252
+39      FB               35 GO:0051716
+40      FB               43 GO:0055085
+41      FB               38 GO:0060255
+42      FB              152 GO:0071704
+43      FB               37 GO:0080090
+44      FB               60 GO:0090304
+45      FB               36 GO:0097659
+46      FB               66 GO:1901360
+47      FB               40 GO:1901362
+48      FB               60 GO:1901564
+49      FB               45 GO:1901576
+50      FB               35 GO:1903506
+51      FB               36 GO:2000112
+52      FB               35 GO:2001141
+53     SOG              129 GO:0019222
+54     SOG              193 GO:0007165
+55     SOG              153 GO:0009058
+56     SOG              420 GO:0006807
+57     SOG              247 GO:0051234
+58     SOG              357 GO:0050794
+59     SOG              237 GO:0007154
+60     SOG              343 GO:0044237
+61     SOG              199 GO:0051716
+62     SOG              484 GO:0071704
+63     SOG              112 GO:0003008
+64     SOG              464 GO:0044238
+65     SOG              244 GO:0046483
+66     SOG              150 GO:0044249
+67     SOG              127 GO:0031323
+68     SOG              151 GO:1901576
+69     SOG              247 GO:0034641
+70     SOG              152 GO:0019538
+71     SOG              238 GO:0006139
+72     SOG              246 GO:1901360
+73     SOG              127 GO:0080090
+74     SOG              127 GO:0051171
+75     SOG              120 GO:0009889
+76     SOG              182 GO:1901564
+77     SOG              245 GO:0006725
+78     SOG              128 GO:0060255
+79     SOG              388 GO:0043170
+80     SOG              279 GO:0044260
+81     SOG              246 GO:0006810
+82     SOG              139 GO:0055085
+83     SOG              120 GO:0031326
+84     SOG              120 GO:0010556
+85     SOG              120 GO:0019219
+86     SOG              146 GO:0044271
+87     SOG              119 GO:0051252
+88     SOG              143 GO:0019438
+89     SOG              144 GO:1901362
+90     SOG              133 GO:0034645
+91     SOG              126 GO:0006811
+92     SOG              133 GO:0009059
+93     SOG              143 GO:0034654
+94     SOG              143 GO:0018130
+95     SOG              218 GO:0090304
+96     SOG              131 GO:0010467
+97     SOG              121 GO:0010468
+98     SOG              120 GO:2000112
+99     SOG              119 GO:0006355
+100    SOG              124 GO:0032774
+101    SOG              127 GO:0016070
+102    SOG              119 GO:2001141
+103    SOG              124 GO:0006351
+104    SOG              124 GO:0097659
+105    SOG              119 GO:1903506
+106     MG              224 GO:0044237
+107     MG              306 GO:0006807
+108     MG              387 GO:0071704
+109     MG              102 GO:0007165
+110     MG              108 GO:0051716
+111     MG              122 GO:0007154
+112     MG              136 GO:0051234
+113     MG              186 GO:0050794
+114     MG              373 GO:0044238
+115     MG               85 GO:0009058
+116     MG              151 GO:0006139
+117     MG              156 GO:0046483
+118     MG               83 GO:1901576
+119     MG              161 GO:0034641
+120     MG              127 GO:0019538
+121     MG              286 GO:0043170
+122     MG              135 GO:0006810
+123     MG               82 GO:0044249
+124     MG              180 GO:0044260
+125     MG              150 GO:1901564
+126     MG              158 GO:1901360
+127     MG              157 GO:0006725
+128     MG               76 GO:0034654
+129     MG              142 GO:0090304
+130     MG               95 GO:0006508
+131     MG               79 GO:1901362
+132     MG               81 GO:0055085
+133     MG               78 GO:0018130
+134     MG               79 GO:0044271
+135     MG               77 GO:0019438
+136     HG              183 GO:0006139
+137     HG               88 GO:0006351
+138     HG               99 GO:0006508
+139     HG              189 GO:0006725
+140     HG              356 GO:0006807
+141     HG              162 GO:0006810
+142     HG              150 GO:0007154
+143     HG              125 GO:0007165
+144     HG              110 GO:0009058
+145     HG               96 GO:0009059
+146     HG               98 GO:0010467
+147     HG               88 GO:0010468
+148     HG               91 GO:0016070
+149     HG              100 GO:0018130
+150     HG               93 GO:0019222
+151     HG              101 GO:0019438
+152     HG              150 GO:0019538
+153     HG               90 GO:0031323
+154     HG               88 GO:0032774
+155     HG              193 GO:0034641
+156     HG               96 GO:0034645
+157     HG              100 GO:0034654
+158     HG              336 GO:0043170
+159     HG              275 GO:0044237
+160     HG              410 GO:0044238
+161     HG              108 GO:0044249
+162     HG              225 GO:0044260
+163     HG              103 GO:0044271
+164     HG              187 GO:0046483
+165     HG              237 GO:0050794
+166     HG               90 GO:0051171
+167     HG              163 GO:0051234
+168     HG              131 GO:0051716
+169     HG              100 GO:0055085
+170     HG               92 GO:0060255
+171     HG              427 GO:0071704
+172     HG               90 GO:0080090
+173     HG              171 GO:0090304
+174     HG               88 GO:0097659
+175     HG              190 GO:1901360
+176     HG              102 GO:1901362
+177     HG              175 GO:1901564
+178     HG              109 GO:1901576
+179     MT              107 GO:0051234
+180     MT               80 GO:0007165
+181     MT               97 GO:0007154
+182     MT               87 GO:0051716
+183     MT               72 GO:0009058
+184     MT              256 GO:0044238
+185     MT              185 GO:0044237
+186     MT              144 GO:0050794
+187     MT              266 GO:0071704
+188     MT              233 GO:0006807
+189     MT              150 GO:0044260
+190     MT               83 GO:0019538
+191     MT              106 GO:0006810
+192     MT              133 GO:0006725
+193     MT              133 GO:0034641
+194     MT              133 GO:0046483
+195     MT               69 GO:0044249
+196     MT              217 GO:0043170
+197     MT               70 GO:1901576
+198     MT              134 GO:1901360
+199     MT              131 GO:0006139
+200     MT              101 GO:1901564
+201     MT              121 GO:0090304
+202     MT               58 GO:0009059
+203     MT               67 GO:0055085
+204     MT               65 GO:1901362
+205     MT               61 GO:0006259
+206     MT               58 GO:0034645
+207     MT               64 GO:0034654
+208     MT               64 GO:0018130
+209     MT               64 GO:0019438
+210     MT               65 GO:0044271
+211     MT               58 GO:0010467
+212     MT               57 GO:0016070</code></pre>
+</div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r distill-force-highlighting-css"><code class="sourceCode r"></code></pre></div>
 <!--radix_placeholder_article_footer-->
 <!--/radix_placeholder_article_footer-->
 </div>
