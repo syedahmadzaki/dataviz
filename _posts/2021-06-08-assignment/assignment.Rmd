@@ -20,7 +20,22 @@ knitr::opts_chunk$set(echo = FALSE)
 
 # Installing and loading necessary packages
 if (!require("pacman")) install.packages("pacman")
-pacman::p_load(ggplot2, tidyverse, readr, jpeg, grid, plotly, gganimate, writexl, qwraps2, reshape2, scales)
+pacman::p_load(ggplot2, 
+               tidyverse, 
+               readr, 
+#               jpeg, 
+               grid, 
+               plotly, 
+#               gganimate, 
+               writexl, 
+#               qwraps2, 
+               reshape2, 
+               scales, 
+               sf, 
+               raster, 
+               tmap, 
+               clock,
+forcats)
 
 ```
 
@@ -59,56 +74,58 @@ We start by loading all the necessary datasets provided in VAST Challenge 2021 M
 # Loading all datasets and image
 cc <- readr::read_csv("data/cc_data.csv") # Add credit card data
 loyalty <- readr::read_csv("data/loyalty_data.csv") # Add loyalty data
-mc2 <- jpeg::readJPEG("img/MC2-tourist.jpg", native = TRUE) # Add jpeg map file
+# mc2 <- jpeg::readJPEG("img/MC2-tourist.jpg", native = TRUE) # Add jpeg map file
+mc2 <- raster("data/MC2-tourist_modified.tif") # Add tif file as a raster layer
 gps <- readr::read_csv("data/gps.csv") # Add gps data
-assignments <- readr::read_csv("data/car-assignments.csv") # Add car assignments
+car <- readr::read_csv("data/car-assignments.csv") # Add car assignments
+Abila_st <- st_read(dsn = "data", layer = "Abila")
 
 ```
 
-### 1.1	Understanding the Credit Card data
+### 1.1	Understanding the data
 As always, we will review each of the datasets in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.
 
-We will begin by reviewing the credit card data.
+We will begin by reviewing both the csv data first We noticed a few discrepancies:  
+1. Date format within the timestamp were in a MM-DD-YYYY H:M format  
+2. Katerina's Cafe contains unique characters, which may cause problems during our analysis  
+3. ID and Last4CCNum are treated as regular double numbers, instead of a character type.
 
-```{r extract-cc-structure}
+```{r csv-data-cleaning}
 
 str(cc)
-
-```
-
-While exploring these four columns, the date format within the timestamp were in a MM-DD-YYYY H:M format. We will ensure that R understands this format.
-
-```{r cc-data-cleaning}
-
-cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT") #Readjust CC timestamp
-cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
-
-```
-
-### 1.2	Understanding the Loyalty Card data
-We will now review the loyalty card data.
-
-```{r extract-loyalty-structure}
-
 str(loyalty)
+str(car)
+str(gps)
 
-```
-Though the loyalty data has a similar structure to the credit card data, there are notable differences. Apart from the difference in the last column, the timestamp is in a MM-DD-YYYY format. This is a slight difference to the credit card data. We will now make similar adjustments to the timestamp column.
+#--------------- Cleaning CC data ---------------
 
-```{r loyalty-data-cleaning}
+#cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT") #Readjust CC timestamp
+cc$timestamp <- date_time_parse(cc$timestamp,
+                zone = "",
+                format = "%m/%d/%Y %H:%M") #Readjust CC timestamp
+cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
+cc$last4ccnum <- as_factor(cc$last4ccnum)
 
-loyalty$timestamp <- as.POSIXct(loyalty$timestamp, format = "%m/%d/%Y", tz = "GMT") #Readjust loyalty timestamp
+#--------------- Cleaning Loyalty data ---------------
+
+#loyalty$timestamp <- as.POSIXct(loyalty$timestamp, format = "%m/%d/%Y", tz = "GMT") #Readjust Loyalty timestamp
+loyalty$timestamp <- date_time_parse(loyalty$timestamp,
+                zone = "",
+                format = "%m/%d/%Y") #Readjust CC timestamp
 loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
 
+#--------------- Cleaning Car Assignment data ---------------
+
+car$CarID <- as_factor(car$CarID)
+
+#--------------- Cleaning GPS data ---------------
+
+gps$id <- as_factor(gps$id)
+gps$Timestamp <- date_time_parse(gps$Timestamp,
+                zone = "",
+                format = "%m/%d/%Y %H:%M:%S")
+
 ```
-
-
-
-
-
-
-
-
 
 
 ## 2.	Data Preparation
@@ -139,12 +156,12 @@ for (i in 1:nrow(dist.concat))
   }
     
 cc_loyalty <- match.s1.s2 %>%
-  left_join(select(cc, last4ccnum, ID), by = c("cc.i" = "ID")) %>% #Add in CC num column
-  left_join(select(loyalty, loyaltynum, ID), by = c("loyalty.i" = "ID")) #Add in loyalty card num column
+  left_join(dplyr::select(cc, last4ccnum, ID), by = c("cc.i" = "ID")) %>% #Add in CC num column
+  left_join(dplyr::select(loyalty, loyaltynum, ID), by = c("loyalty.i" = "ID")) #Add in loyalty card num column
 
 ```
 
-Let's now extract the matching credit card-loyalty pairs according to their distance.
+Let's now extract the matching credit card-loyalty pairs according to 80% matching of their comparative distance.
 
 ```{r extract-pairs}
 
@@ -169,53 +186,62 @@ n_distinct(cc_loyalty_unique_80$loyaltynum)
 
 
 
-
+We will now merge the GPS data, together with the car assignments.
 
 ```{r GPS-data-manipulation}
 
 # GPS Data Manipulation
-gps_name <- left_join(gps,assignments, by = c("id" = "CarID")) # Merge car assignments to gps data
-gps_name$Timestamp <- as.POSIXct(gps_name$Timestamp, format = "%m/%d/%Y  %H:%M:%S", tz = "GMT") # Switching month-day format
+gps_name <- left_join(gps,car, by = c("id" = "CarID")) # Merge car assignments to gps data
+gps_name$Timestamp <- as.POSIXct(gps_name$Timestamp, format = "%m/%d/%Y  %H:%M:%S", tz = "GMT") # Timestamp switching to month-day-year format
 gps_name <- gps_name[with(gps_name,order(id,Timestamp)),] # Sort first by ID in ascending order and then Timestamp by oldest to newest
 gps_name <- gps_name %>% # Add running number in the first column
   mutate(No = 1:n()) %>% 
-  select(No, everything()) 
-
+  dplyr::select(No, everything()) 
 gps_name <- gps_name %>% # Create additional column indicating time taken from previous timestamp for same ID
-#    group_by(id) %>%
     mutate(Delta = Timestamp - lag(Timestamp, default = first(Timestamp)))
 
 gps_name$Delta <- as.numeric(gps_name$Delta)
 
-spots <- gps_name %>% # Filtering out gps coordinates where stationary for only 0-9 secs
-  filter(!(Delta %in% c(0:9)))
-spots$No <- rep(1:3648, times = 1)
+spots <- gps_name %>% # Filtering out gps coordinates where stationary for more than 10 mins
+  filter(Delta > 600)
+spots$No <- rep(1:2965, times = 1) # Add running number in the first column
 
-spots_l <- spots[,4:5] # Extract only lat long
-spots_ll <- spots_l %>% slice(rep(1:n(), each = 3648))
-spots_ll$No <- rep(1:3648, times = 3648)
-spots_l$Noo <- rep(1:3648, times = 1)
-spots_ll <- left_join(spots_ll,spots_l, by = c("No" = "Noo"))
-spots_ll$Diff <- sqrt((spots_ll$lat.x-spots_ll$lat.y)^2+(spots_ll$long.x-spots_ll$long.y)^2)
+gps_sf <- st_as_sf(gps, coords = c("long", "lat"), # Changing into a shapefile
+    crs = 4326, agr = "constant")
+spots_sf <- st_as_sf(spots, coords = c("long", "lat"), # Changing into a shapefile
+    crs = 4326, agr = "constant")
+gps_path <- gps_sf %>% # Creating a movement path
+  group_by(id) %>%
+  summarize(m = mean(Timestamp), 
+            do_union=FALSE) %>%
+  st_cast("LINESTRING")
+
+
+#spots_l <- spots[,4:5] # Extract only lat long
+#spots_ll <- spots_l %>% slice(rep(1:n(), each = 3648))
+#spots_ll$No <- rep(1:3648, times = 3648)
+#spots_l$Noo <- rep(1:3648, times = 1)
+#spots_ll <- left_join(spots_ll,spots_l, by = c("No" = "Noo"))
+#spots_ll$Diff <- sqrt((spots_ll$lat.x-spots_ll$lat.y)^2+(spots_ll$long.x-spots_ll$long.y)^2)
 
 #n_perc(spots_ll$Diff < 0.05)
 
 #write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Desktop\\spots.csv")
 
 # Mapping map and gps together specifically for CarID #1
-mapping_spots <- ggplot(spots, aes(long, lat)) +
-  annotation_custom(rasterGrob(mc2,
-    width = unit(1, "npc"),
-    height = unit(1,"npc")),
-  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
-  geom_point(size = 0.1) + 
-  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
-  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
-                     panel.grid.major = element_blank(), 
-                     panel.grid.minor = element_blank(), 
-                     axis.line = element_line(colour = "black"))  
+#mapping_spots <- ggplot(spots, aes(long, lat)) +
+#  annotation_custom(rasterGrob(mc2,
+#    width = unit(1, "npc"),
+#    height = unit(1,"npc")),
+#  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
+#  geom_point(size = 0.1) + 
+#  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
+#  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
+#                     panel.grid.major = element_blank(), 
+#                     panel.grid.minor = element_blank(), 
+#                     axis.line = element_line(colour = "black"))  
 
-mapping_spots
+#mapping_spots
 
 ```
 
@@ -334,71 +360,43 @@ mapping
 
 ```
 
+Testing the use of tmap
 
+```{r tmap-visualisation}
+
+gps_path_selected <- gps_path %>%
+  filter(id==3)
+tmap_mode("view")
+tm_shape(mc2) +
+  tm_rgb(mc2, r = 1,g = 2,b = 3,
+       alpha = NA,
+       saturation = 1,
+       interpolate = TRUE,
+       max.value = 255) +
+  tm_shape(gps_path_selected) +
+  tm_lines()
+
+```
 
 
 
 ```{r}
-
-structure(list(Tissue = structure(c(1L, 1L, 1L, 1L, 1L, 1L, 1L, 
-1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
-1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 
-1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 1L, 2L, 2L, 2L, 
-2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
-2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
-2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 
-2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 
-3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 3L, 
-4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 
-4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 
-4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 5L, 5L, 5L, 5L, 5L, 
-5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 
-5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L, 5L), .Label = c("FB", 
-"SOG", "MG", "HG", "MT"), class = "factor"), Transcript_Count = c(64, 
-36, 35, 42, 66, 122, 62, 40, 34, 46, 40, 36, 41, 37, 36, 37, 
-40, 35, 38, 40, 53, 37, 36, 36, 68, 40, 40, 116, 84, 149, 45, 
-72, 42, 65, 78, 37, 62, 35, 35, 43, 38, 152, 37, 60, 36, 66, 
-40, 60, 45, 35, 36, 35, 129, 193, 153, 420, 247, 357, 237, 343, 
-199, 484, 112, 464, 244, 150, 127, 151, 247, 152, 238, 246, 127, 
-127, 120, 182, 245, 128, 388, 279, 246, 139, 120, 120, 120, 146, 
-119, 143, 144, 133, 126, 133, 143, 143, 218, 131, 121, 120, 119, 
-124, 127, 119, 124, 124, 119, 224, 306, 387, 102, 108, 122, 136, 
-186, 373, 85, 151, 156, 83, 161, 127, 286, 135, 82, 180, 150, 
-158, 157, 76, 142, 95, 79, 81, 78, 79, 77, 183, 88, 99, 189, 
-356, 162, 150, 125, 110, 96, 98, 88, 91, 100, 93, 101, 150, 90, 
-88, 193, 96, 100, 336, 275, 410, 108, 225, 103, 187, 237, 90, 
-163, 131, 100, 92, 427, 90, 171, 88, 190, 102, 175, 109, 107, 
-80, 97, 87, 72, 256, 185, 144, 266, 233, 150, 83, 106, 133, 133, 
-133, 69, 217, 70, 134, 131, 101, 121, 58, 67, 65, 61, 58, 64, 
-64, 64, 65, 58, 57), GO.ID = structure(c(1L, 2L, 3L, 4L, 5L, 
-6L, 7L, 8L, 9L, 10L, 11L, 12L, 13L, 14L, 15L, 16L, 17L, 18L, 
-19L, 20L, 21L, 22L, 23L, 24L, 25L, 26L, 27L, 28L, 29L, 30L, 31L, 
-32L, 33L, 34L, 35L, 36L, 37L, 38L, 39L, 40L, 41L, 42L, 43L, 44L, 
-45L, 46L, 47L, 48L, 49L, 50L, 51L, 52L, 19L, 9L, 10L, 6L, 37L, 
-35L, 8L, 29L, 39L, 42L, 53L, 30L, 34L, 31L, 22L, 49L, 25L, 21L, 
-1L, 46L, 43L, 36L, 12L, 48L, 5L, 41L, 28L, 32L, 7L, 40L, 23L, 
-15L, 18L, 33L, 38L, 20L, 47L, 26L, 54L, 11L, 27L, 17L, 44L, 13L, 
-14L, 51L, 3L, 24L, 16L, 52L, 2L, 45L, 50L, 29L, 6L, 42L, 9L, 
-39L, 8L, 37L, 35L, 30L, 10L, 1L, 34L, 49L, 25L, 21L, 28L, 7L, 
-31L, 32L, 48L, 46L, 5L, 27L, 44L, 4L, 47L, 40L, 17L, 33L, 20L, 
-1L, 2L, 4L, 5L, 6L, 7L, 8L, 9L, 10L, 11L, 13L, 14L, 16L, 17L, 
-19L, 20L, 21L, 22L, 24L, 25L, 26L, 27L, 28L, 29L, 30L, 31L, 32L, 
-33L, 34L, 35L, 36L, 37L, 39L, 40L, 41L, 42L, 43L, 44L, 45L, 46L, 
-47L, 48L, 49L, 37L, 9L, 8L, 39L, 10L, 30L, 29L, 35L, 42L, 6L, 
-32L, 21L, 7L, 5L, 25L, 34L, 31L, 28L, 49L, 46L, 1L, 48L, 44L, 
-11L, 40L, 47L, 55L, 26L, 27L, 17L, 20L, 33L, 13L, 16L), .Label = c("GO:0006139", 
-"GO:0006351", "GO:0006355", "GO:0006508", "GO:0006725", "GO:0006807", 
-"GO:0006810", "GO:0007154", "GO:0007165", "GO:0009058", "GO:0009059", 
-"GO:0009889", "GO:0010467", "GO:0010468", "GO:0010556", "GO:0016070", 
-"GO:0018130", "GO:0019219", "GO:0019222", "GO:0019438", "GO:0019538", 
-"GO:0031323", "GO:0031326", "GO:0032774", "GO:0034641", "GO:0034645", 
-"GO:0034654", "GO:0043170", "GO:0044237", "GO:0044238", "GO:0044249", 
-"GO:0044260", "GO:0044271", "GO:0046483", "GO:0050794", "GO:0051171", 
-"GO:0051234", "GO:0051252", "GO:0051716", "GO:0055085", "GO:0060255", 
-"GO:0071704", "GO:0080090", "GO:0090304", "GO:0097659", "GO:1901360", 
-"GO:1901362", "GO:1901564", "GO:1901576", "GO:1903506", "GO:2000112", 
-"GO:2001141", "GO:0003008", "GO:0006811", "GO:0006259"), class = "factor")), row.names = c(NA, 
--212L), class = "data.frame")
-
+m <- tm_shape(mc2) +
+  tm_rgb(mc2, r = 1,g = 2,b = 3,
+       alpha = NA,
+       saturation = 1,
+       interpolate = TRUE,
+       max.value = 255) +
+  tm_shape(gps_path) +
+  tm_lines() +
+  tm_facets(along = "id")
+tmap_animation(m, 
+               filename = "gif/drivers.gif",
+               delay=100)
 ```
+
+
+
+
+
 
