@@ -1,11 +1,11 @@
 ---
-title: "VAST Challenge 2021: Mini-Challenge 2"
+title: "Assignment: VAST Challenge 2021 (Mini-Challenge 2)"
 description: |
-  A short description of the post.
+  Investigating the Mini-Challenge 2 of VAST Challenge 2021 as part of the Assignment
 author:
   - name: Syed Ahmad Zaki
     url: https://www.google.com/
-date: 06-08-2021
+date: 07-07-2021
 output:
   distill::distill_article:
     self_contained: false
@@ -28,14 +28,15 @@ pacman::p_load(ggplot2,
                plotly, 
 #               gganimate, 
                writexl, 
-#               qwraps2, 
+               qwraps2, 
                reshape2, 
                scales, 
                sf, 
                raster, 
                tmap, 
                clock,
-forcats)
+               forcats,
+               readxl)
 
 ```
 
@@ -56,18 +57,46 @@ YES
 Provide a link to your video.  Example:
 http://www.westbirmingham.ac.uk/uwb-smith-mc2-video.wmv
 
+--- 
+
+## 1. Introduction
+### 1.1 Our Mission (Should We Accept It!)
+As a visual analytics expert assisting law enforcement, your mission is to identify which GASTech employees made which purchases and identify suspicious patterns of behavior. You must cope with uncertainties that result from missing, conflicting, and imperfect data to make recommendations for further investigation.
+
+Use visual analytics to analyze the available data and develop responses to the questions below. In addition, prepare a video that shows how you used visual analytics to solve this challenge. Submission instructions are available here. Entry forms are available for download [here.](https://vast-challenge.github.io/2021/MC2.html)
+
 ---
 
-## Our Mission (Should We Accept It)
-As a visual analytics expert assisting law enforcement, your mission is to identify which GASTech employees made which purchases and identify suspicious patterns of behavior.. You must cope with uncertainties that result from missing, conflicting, and imperfect data to make recommendations for further investigation.
+## 2.	Literature Review
+A cursory look at the dataset reveals the following types of data:
 
-Use visual analytics to analyze the available data and develop responses to the questions below. In addition, prepare a video that shows how you used visual analytics to solve this challenge. Submission instructions are available here. Entry forms are available for download below.
-https://vast-challenge.github.io/2021/MC2.html
+| Data            | Type        | Description                                         |
+| :---:           |    :----:   |         :---                                        |
+| Credit Card     | Aspatial    | Credit card txns by timestamp, location and amt     |
+| Loyalty         | Aspatial    | Loyalty card txns by date, location and amt         |    
+| Car Assignment  | Aspatial    | Car assignment ID with individuals' name and role   |
+| MC2.jpg         | Aspatial    | Abila's map in jpeg format                          |
+| MC2.tif         | Geospatial  | Abila's map in a geotiff format                     |
+| GPS             | Geospatial  | GPS points (latlong) by car ID and timestamp        |
+| Abila           | Geospatial  | Abila's road network                                |
+| Kronos Island   | Geospatial  | Polygon showing Kronos Island's admin boundary      |
+
+The following two considerations need to be addressed:
+
+### 2.1 Fuzzy Matching (Credit Card with Loyalty Data)
+
+Explain levenshtein distance here
+
+
+### 2.2 Visualising large GPS Data
+
+ABCDE
+
 
 ---
 
-## 1.	Data Understanding
-We start by loading all the necessary datasets provided in VAST Challenge 2021 Mini-Challenge 2.
+## 3.	Data Understanding
+We start by loading all the necessary datasets provided in the VAST Challenge 2021 Mini-Challenge 2.
 
 ```{r load-all-datasets, echo = T, results = 'hide'}
 
@@ -82,10 +111,10 @@ Abila_st <- st_read(dsn = "data", layer = "Abila")
 
 ```
 
-### 1.1	Understanding the data
+### 3.1	Understanding the data
 As always, we will review each of the datasets in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.
 
-We will begin by reviewing both the csv data first We noticed a few discrepancies:  
+We will begin by reviewing all four csv data first. We immediately noticed a few discrepancies:  
 1. Date format within the timestamp were in a MM-DD-YYYY H:M format  
 2. Katerina's Cafe contains unique characters, which may cause problems during our analysis  
 3. ID and Last4CCNum are treated as regular double numbers, instead of a character type.
@@ -127,9 +156,10 @@ gps$Timestamp <- date_time_parse(gps$Timestamp,
 
 ```
 
+---
 
-## 2.	Data Preparation
-### 2.1	Combining Both Credit Card and Loyalty Data
+## 4.	Data Preparation
+### 4.1	Combining Both Credit Card and Loyalty Data
 We will now attempt to find matching rows between the cc and loyalty data. We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
 
 ```{r levenshtein-distance-matching}
@@ -246,10 +276,22 @@ gps_path <- gps_sf %>% # Creating a movement path
 ```
 
 
+Through a visual inspection of the map, credit card and loyalty data, we found 41 unique locations. With this, we then used the spots data above to find the coordinates nearest to these locations. We recorded the coordinates of each location in an Excel file, and would now bring it into R.
 
-## 3.	Data Exploration Analysis
+```{r spot-locations}
+
+spot_list <- read_excel("data/spots and list.xlsx", sheet = "LIST") #Import Excel file
+
+  
+
+
+```
+
+
 
 ---
+
+## 5.	Data Exploration Analysis
 
 **Questions**
 
@@ -336,27 +378,25 @@ Testing the use of a static image as background and showcasing the gps data on i
 
 ```{r}
 
-
-
 # Mapping map and gps together specifically for CarID #1
-mapping <- ggplot(gps_name %>%
-                    filter(id == "1"),
-                  aes(long, lat)) +
-  annotation_custom(rasterGrob(mc2,
-    width = unit(1, "npc"),
-    height = unit(1,"npc")),
+#mapping <- ggplot(gps_name %>%
+#                    filter(id == "1"),
+#                  aes(long, lat)) +
+#  annotation_custom(rasterGrob(mc2,
+#    width = unit(1, "npc"),
+#    height = unit(1,"npc")),
 #  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + #Original searching
-  xmin = 24.82419, xmax = 24.90976, ymin = 36.04499, ymax = 36.09543) + #Prof's raster extraction
-  geom_point(size = 0.1) + 
-  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
-  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
-                     panel.grid.major = element_blank(), 
-                     panel.grid.minor = element_blank(), 
-                     axis.line = element_line(colour = "black"))  
+#  xmin = 24.82419, xmax = 24.90976, ymin = 36.04499, ymax = 36.09543) + #Prof's raster extraction
+#  geom_point(size = 0.1) + 
+#  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
+#  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
+#                     panel.grid.major = element_blank(), 
+#                     panel.grid.minor = element_blank(), 
+#                     axis.line = element_line(colour = "black"))  
 #  + transition_time(Timestamp) +
 #  labs(title = "Date:{frame_time}")
 
-mapping
+#mapping
 
 ```
 
@@ -380,7 +420,7 @@ tm_shape(mc2) +
 
 
 
-```{r}
+```{r include=FALSE}
 m <- tm_shape(mc2) +
   tm_rgb(mc2, r = 1,g = 2,b = 3,
        alpha = NA,
