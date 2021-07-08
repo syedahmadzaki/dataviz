@@ -68,27 +68,27 @@ Use visual analytics to analyze the available data and develop responses to the 
 ---
 
 ## 2.	Literature Review
-A cursory look at the dataset reveals the following types of data:
+A cursory look at the dataset reveals the following data types:
 
-| Data            | Type        | Description                                         |
-| :---:           |    :----:   |         :---                                        |
-| Credit Card     | Aspatial    | Credit card txns by timestamp, location and amt     |
-| Loyalty         | Aspatial    | Loyalty card txns by date, location and amt         |    
-| Car Assignment  | Aspatial    | Car assignment ID with individuals' name and role   |
-| MC2.jpg         | Aspatial    | Abila's map in jpeg format                          |
-| MC2.tif         | Geospatial  | Abila's map in a geotiff format                     |
-| GPS             | Geospatial  | GPS points (latlong) by car ID and timestamp        |
-| Abila           | Geospatial  | Abila's road network                                |
-| Kronos Island   | Geospatial  | Polygon showing Kronos Island's admin boundary      |
+| Data                | Type        | Description                                         |
+| :---:               |    :----:   |         :---                                        |
+| Credit Card.csv     | Aspatial    | Credit card txns by timestamp, location and amt     |
+| Loyalty.csv         | Aspatial    | Loyalty card txns by date, location and amt         |    
+| Car Assignment.csv  | Aspatial    | Car assignment ID with individuals' name and role   |
+| MC2.jpg             | Aspatial    | Abila's map in jpeg format                          |
+| MC2.tif             | Geospatial  | Abila's map in a geotiff format                     |
+| GPS.csv             | Geospatial  | GPS points (latlong) by car ID and timestamp        |
+| Abila               | Geospatial  | Abila's road network                                |
+| Kronos Island       | Geospatial  | Polygon showing Kronos Island's admin boundary      |
 
-The following two considerations need to be addressed:
+With these dataset in mind, the following considerations would need to be addressed:
 
 ### 2.1 Fuzzy Matching (Credit Card with Loyalty Data)
 
 Explain levenshtein distance here
 
 
-### 2.2 Visualising large GPS Data
+### 2.2 Visualising Large Counts of GPS Data
 
 ABCDE
 
@@ -112,11 +112,11 @@ Abila_st <- st_read(dsn = "data", layer = "Abila")
 ```
 
 ### 3.1	Understanding the data
-As always, we will review each of the datasets in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.
+As always, we review each dataset in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.
 
 We will begin by reviewing all four csv data first. We immediately noticed a few discrepancies:  
 1. Date format within the timestamp were in a MM-DD-YYYY H:M format  
-2. Katerina's Cafe contains unique characters, which may cause problems during our analysis  
+2. Katerina's Cafe contains unique characters, which may cause downstream problems during our analysis  
 3. ID and Last4CCNum are treated as regular double numbers, instead of a character type.
 
 ```{r csv-data-cleaning}
@@ -129,9 +129,10 @@ str(gps)
 #--------------- Cleaning CC data ---------------
 
 #cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT") #Readjust CC timestamp
+#cc$timestamp <- as.character(cc$timestamp)
 cc$timestamp <- date_time_parse(cc$timestamp,
                 zone = "",
-                format = "%m/%d/%Y %H:%M") #Readjust CC timestamp
+                format = "%m/%d/%Y  %H:%M") #Readjust CC timestamp
 cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
 cc$last4ccnum <- as_factor(cc$last4ccnum)
 
@@ -153,6 +154,7 @@ gps$id <- as_factor(gps$id)
 gps$Timestamp <- date_time_parse(gps$Timestamp,
                 zone = "",
                 format = "%m/%d/%Y %H:%M:%S")
+gps$date <- as_date(gps$Timestamp)
 
 ```
 
@@ -160,7 +162,10 @@ gps$Timestamp <- date_time_parse(gps$Timestamp,
 
 ## 4.	Data Preparation
 ### 4.1	Combining Both Credit Card and Loyalty Data
-We will now attempt to find matching rows between the cc and loyalty data. We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
+We will now attempt to find matching rows between the cc and loyalty data.  
+
+#### 4.1.1 Fuzzy String Matching Using Levenshtein Distance  
+We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
 
 ```{r levenshtein-distance-matching}
 
@@ -191,6 +196,7 @@ cc_loyalty <- match.s1.s2 %>%
 
 ```
 
+#### 4.1.2 Extracting Best Matching Pairs     
 Let's now extract the matching credit card-loyalty pairs according to 80% matching of their comparative distance.
 
 ```{r extract-pairs}
@@ -206,6 +212,8 @@ cc_loyalty_unique_80 <- cc_loyalty_unique %>%
 n_distinct(cc_loyalty_unique_80$last4ccnum)
 n_distinct(cc_loyalty_unique_80$loyaltynum)
 
+write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
+
 ```
 
 
@@ -215,8 +223,9 @@ n_distinct(cc_loyalty_unique_80$loyaltynum)
 
 
 
-
-We will now merge the GPS data, together with the car assignments.
+### 4.2	Combining Both GPS and Car Assignment Data
+#### 4.2.1 Initial Step
+First, we will merge the GPS data with the car assignments.
 
 ```{r GPS-data-manipulation}
 
@@ -232,9 +241,121 @@ gps_name <- gps_name %>% # Create additional column indicating time taken from p
 
 gps_name$Delta <- as.numeric(gps_name$Delta)
 
+```
+
+#### 4.2.2 Isolate Stationary GPS Points
+Next, we will isolate GPS points, that have been stationary for at least 10 mins.
+
+```{r GPS-stationary}
+
 spots <- gps_name %>% # Filtering out gps coordinates where stationary for more than 10 mins
   filter(Delta > 600)
-spots$No <- rep(1:2965, times = 1) # Add running number in the first column
+spots$No <- rep(1:2965, times = 1) # Redo running number in the first column
+
+```
+
+#### 4.2.3 Identifying Stationary GPS Points
+Next, using the map and other data sources, we identify the locations of each of these stationary GPS points.
+
+```{r identifying-stationary-GPS-points}
+
+spots$Location <- 1 # Create a Location column
+
+spots <- spots %>% mutate(
+  Location = case_when(
+    between(lat, 36.05092013, 36.05102938) & 
+      between(long, 24.82586806, 24.82598723)  ~ "Abila Airport", # 35 features
+    between(lat, 36.07434876, 36.07443715) & 
+      between(long, 24.84592966, 24.84598782)  ~ "Abila Scrapyard", # 4 features
+    between(lat, 36.07660977, 36.07669909) & 
+      between(long, 24.85756408, 24.85764247)  ~ "Albert's Fine Clothing", # 155 features
+    between(lat, 36.08172086, 36.08182543) & 
+      between(long, 24.85086882, 24.85096705)  ~ "Bean There Done That", # 46 features
+    between(lat, 36.05572125, 36.05584094) & 
+      between(long, 24.90246542, 24.90258487)  ~ "Brew've Been Served", # 143 features
+    between(lat, 36.06582469, 36.065941) & 
+      between(long, 24.90097567, 24.90108865)  ~ "Building Control Stenig's Home", # 20 features
+    between(lat, 36.05851786, 36.05860144) & 
+      between(long, 24.8808655, 24.88092654)  ~ "Carlyle Chemical Inc.", # 30 features
+    between(lat, 36.05859158, 36.05859887) & 
+      between(long, 24.85790261, 24.85799357)  ~ "Carly's Coffee", # 3 features
+    between(lat, 36.07818062, 36.07821857) & 
+      between(long, 24.87211555, 24.8721508)  ~ "CFO Ingrid's Home", # 27 features
+    between(lat, 36.07682044, 36.07685752) & 
+      between(long, 24.8658641, 24.86589901)  ~ "CIO Ada's Home", # 35 features
+    between(lat, 36.0721156, 36.07215701) & 
+      between(long, 24.87458425, 24.8746267)  ~ "COO Orhan's Home", # 29 features
+    between(lat, 36.07062423, 36.07073983) & 
+      between(long, 24.89517609, 24.89526281)  ~ "Chostus Hotel", # 11 features
+    between(lat, 36.05462322, 36.05469486) & 
+      between(long, 24.88977034, 24.88983886)  ~ "Coffee Cameleon", # 29 features
+    between(lat, 36.07292088, 36.07301365) & 
+      between(long, 24.88396447, 24.88405897)  ~ "Drill Site Manager Marin's Home", # 26 features
+    between(lat, 36.08442031, 36.08449538) & 
+      between(long, 24.86416741, 24.8642387)  ~ "Drill Technician Elsa's Home", # 25 features
+    between(lat, 36.08424703, 36.08432477) & 
+      between(long, 24.8563809, 24.8564637)  ~ "Drill Technician Gustav's Home", # 13 features
+    between(lat, 36.0726185, 36.07380904) & 
+      between(long, 24.87510166, 24.87613744)  ~ "Drill Technician Isande's Home", # 26 features
+    between(lat, 36.06922564, 36.06931513) & 
+      between(long, 24.88416486, 24.88426267)  ~ "Drill Technician Kare's Home", # 20 features
+    between(lat, 36.08542073, 36.08550845) & 
+      between(long, 24.86036422, 24.86045943)  ~ "Engineer Lars's Home", # 37 features
+    between(lat, 36.08664252, 36.08672442) & 
+      between(long, 24.85756416, 24.85766744)  ~ "Engineer Felix's Home", # 22 features
+    between(lat, 36.07622023, 36.07626546) & 
+      between(long, 24.87466429, 24.87471053)  ~ "Environmental Safety Advisor Willem's Home", # 33 features
+    between(lat, 36.0603222, 36.06044736) & 
+      between(long, 24.90556693, 24.90569385)  ~ "Frydos Autosupply n' More", # 85 features
+    between(lat, 36.04802098, 36.04805422) & 
+      between(long, 24.87956497, 24.87957691)  ~ "Gastech", # 738 features
+    between(lat, 36.05970763, 36.05981097) & 
+      between(long, 24.85797552, 24.8580772)  ~ "General Grocer", # 47 features
+    between(lat, 36.06362146, 36.06371539) & 
+      between(long, 24.88586605, 24.88595859)  ~ "Hallowed Grounds", # 70 features
+     between(lat, 36.08412146, 36.08420924) & 
+      between(long, 24.85896842, 24.85905081)  ~ "Hydraulic Technician Axel's Home", # 23 features
+     between(lat, 36.08782802, 36.08793196) & 
+      between(long, 24.85627136, 24.8563725)  ~ "Hydraulic Technician Vira's Home", # 24 features
+    between(lat, 36.06641679, 36.06650723) & 
+      between(long, 24.88256875, 24.88265687)  ~ "IT Helpdesk Nils's Home", # 31 features
+    between(lat, 36.06729646, 36.06736745) & 
+      between(long, 24.87788423, 24.87795559)  ~ "IT Technician Isak's Home", # 21 features
+    between(lat, 36.06722012, 36.06731624) & 
+      between(long, 24.8858687, 24.88596759)  ~ "IT Technician Lucas's Home", # 23 features
+    between(lat, 36.05442247, 36.05453641) & 
+      between(long, 24.89986596, 24.89998054)  ~ "Katerina’s Café", # 158 features
+    between(lat, 36.05840347, 36.05849041) & 
+      between(long, 24.88546548, 24.88553455)  ~ "Nationwide Refinery", # 41 features
+    between(lat, 36.05192066, 36.05197575) & 
+      between(long, 24.87076418, 24.87082137)  ~ "Ouzeri Elian", # 67 features
+    between(lat, 36.06764972, 36.06775002) & 
+      between(long, 24.90243213, 24.9025445)  ~ "Perimeter Control Edvard's Home", # 20 features
+    between(lat, 36.05942407, 36.05952152) & 
+      between(long, 24.89476557, 24.8948649)  ~ "Shared Home A - Linnea Kanon Bertrand", # 72 features
+    between(lat, 36.06332304, 36.06343537) & 
+      between(long, 24.89607033, 24.89617856)  ~ "Shared Home B - Lidelse Birgitta Hennie", # 60 features
+    between(lat, 36.06242283, 36.06253955) & 
+      between(long, 24.89877023, 24.89888179)  ~ "Shared Home C - Sven Minke Brand", # 68 features
+    between(lat, 36.05842222, 36.05853828) & 
+      between(long, 24.90096522, 24.90107874)  ~ "Shared Home D - Adra Varja Felix", # 73 features
+    between(lat, 36.06772112, 36.06784956) & 
+      between(long, 24.89906521, 24.89917328)  ~ "Site Control Hideki's Home", # 21 features    
+    ))
+
+sum(is.na(spots$Location))
+length(grep("Environmental Safety Advisor Willem's Home", spots$Location))
+
+write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_latest.csv")
+
+write_csv(cc,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_date.csv")
+
+```
+
+
+
+
+```{r GPS-lines}
 
 gps_sf <- st_as_sf(gps, coords = c("long", "lat"), # Changing into a shapefile
     crs = 4326, agr = "constant")
@@ -274,6 +395,7 @@ gps_path <- gps_sf %>% # Creating a movement path
 #mapping_spots
 
 ```
+
 
 
 Through a visual inspection of the map, credit card and loyalty data, we found 41 unique locations. With this, we then used the spots data above to find the coordinates nearest to these locations. We recorded the coordinates of each location in an Excel file, and would now bring it into R.
