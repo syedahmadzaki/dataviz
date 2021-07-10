@@ -1,0 +1,290 @@
+---
+title: "Lesson09 - Network Viz"
+description: |
+  An in-class exercise in visualising network in R
+author:
+  - name: Syed Ahmad Zaki
+    url: https://www.google.com/
+date: 07-10-2021
+output:
+  distill::distill_article:
+    self_contained: false
+    code_folding: true
+    toc: true
+    toc_depth: 3
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(fig.retina = 3,
+                      echo = TRUE,
+                      eval = TRUE,
+                      message = FALSE,
+                      warning = FALSE)
+```
+
+## Install and load the required libraries
+
+```{r load-packages, echo=TRUE, eval=TRUE, warning=FALSE}
+
+packages = c('igraph','tidygraph',
+             'ggraph', 'visNetwork',
+             'lubridate','clock',
+             'tidyverse')
+
+for (p in packages){
+  if(!require(p, character.only = T)){
+    install.packages(p)
+  }
+  library(p, character.only = T)
+}
+
+```
+
+## Import Data
+
+```{r importing-csv}
+
+GAStech_nodes <- read_csv("data/GAStech_email_node.csv")
+GAStech_edges <- read_csv("data/GAStech_email_edge-v2.csv")
+
+```
+
+## Understand Data First
+
+```{r see-sample-data}
+
+glimpse(GAStech_edges)
+
+```
+
+## Wrangling Time
+
+```{r wrangling-time}
+
+GAStech_edges$SentDate = dmy(GAStech_edges$SentDate)
+GAStech_edges$Weekday = wday(GAStech_edges$SentDate,
+                             label = TRUE,
+                             abbr = FALSE)
+
+```
+
+## Wrangling Attributes
+
+```{r wrangling-attributes}
+
+GAStech_edges_aggregated <- GAStech_edges %>% 
+  filter(MainSubject == "Work related") %>%
+  group_by(source, target, Weekday) %>%
+    summarise(Weight = n()) %>%
+  filter(source!=target) %>%
+  filter(Weight >1) %>%
+  ungroup()
+
+```
+
+## Using tbl_graph() to build tidygraph data model
+
+```{r tbl_graph}
+
+GAStech_graph <- tbl_graph(nodes = GAStech_nodes,
+                           edges = GAStech_edges_aggregated,
+                           directed = TRUE)
+
+```
+
+## Plotting a basic network graph
+
+```{r basic-network-graph}
+
+ggraph(GAStech_graph) +
+  geom_edge_link() +
+  geom_node_point()
+
+```
+
+## Changing the default network graph
+
+```{r basic-network-graph-grey-background}
+
+g <- ggraph(GAStech_graph) +
+  geom_edge_link() +
+  geom_node_point()
+
+g + theme_graph(background = 'grey10')
+
+```
+
+## Fruchterman and Reingold Layout
+
+```{r fruchterman-reingold}
+
+g <- ggraph(GAStech_graph,
+            layout = "fr") +
+  geom_edge_link(aes()) +
+  geom_node_point(aes())
+
+g + theme_graph()
+
+```
+## Modifying network nodes
+
+```{r modify-network-node, warning=FALSE}
+
+g <- ggraph(GAStech_graph,
+            layout = "nicely") +
+  geom_edge_link(aes()) +
+  geom_node_point(aes(colour = Department,
+                      size = 3))
+
+g + theme_graph()
+
+```
+
+
+
+
+## Modifying edges
+
+```{r modify-edges}
+
+g <- ggraph(GAStech_graph,
+            layout = "nicely") +
+  geom_edge_link(aes(width=Weight),
+                 alpha=0.2) +
+  scale_edge_width(range = c(0.1,5)) +
+  geom_node_point(aes(colour=Department),
+                  size = 3) +
+  theme_graph()
+
+g
+
+```
+## Working with facet_edges()
+
+```{r facet-edges}
+
+set_graph_style()
+
+g <- ggraph(GAStech_graph,
+            layout = "nicely") +
+  geom_edge_link(aes(width = Weight),
+                 alpha = 0.2) +
+  scale_edge_width(range = c(0.1,5)) +
+  geom_node_point(aes(colour = Department),
+                  size = 2) +
+  theme(legend.position = 'bottom')
+g + facet_edges(~ Weekday)
+
+```
+## Working with Facet_Nodes()
+
+```{r facet-nodes}
+
+set_graph_style()
+
+g <- ggraph(GAStech_graph,
+            layout = "nicely") +
+  geom_edge_link(aes(width = Weight),
+                 alpha = 0.2) +
+  scale_edge_width(range = c(0.1,5)) +
+  geom_node_point(aes(colour = Department),
+                  size = 2)
+
+g + facet_nodes(~Department) +
+  th_foreground(foreground = "grey80",
+                border = TRUE) +
+  theme(legend.position = 'bottom')
+
+```
+## Computing Centrality Indices
+
+```{r centrality-indices}
+
+g <- GAStech_graph %>%
+  mutate(betweenness_centrality = centrality_betweenness()) %>%
+  ggraph(layout = "fr") +
+  geom_edge_link(aes(width = Weight),
+                 alpha = 0.2) +
+  scale_edge_width(range = c(0.1,5)) +
+  geom_node_point(aes(colour = Department,
+                      size = betweenness_centrality))
+g + theme_graph()
+
+```
+
+## Visualising Community
+
+```{r visualising-community}
+
+g <- GAStech_graph %>%
+  mutate(community = as.factor(group_edge_betweenness(weights = Weight, directed = TRUE))) %>% ggraph(layout = "fr") +
+  geom_edge_link(aes(width=Weight),
+                 alpha = 0.2) +
+  scale_edge_width(range=c(0.1,5)) +
+  geom_node_point(aes(colour=community))
+
+g+theme_graph()
+
+```
+## Data Prep For Interactive Network Graph
+
+```{r data-prep-before-interactive-network-graph}
+
+GAStech_edges_aggregated <- GAStech_edges %>%
+  left_join(GAStech_nodes, by = c("sourceLabel" = "label")) %>%
+  rename(from = id) %>%
+  left_join(GAStech_nodes, by = c("targetLabel" = "label")) %>%
+  rename(to = id) %>%
+  filter(MainSubject == "Work related") %>%
+  group_by(from, to) %>%
+    summarise(weight = n()) %>%
+  filter(from!=to) %>%
+  filter(weight>1) %>%
+  ungroup()
+
+```
+
+## Plotting the first interactive network graph
+
+```{r visNetwork}
+
+visNetwork(GAStech_nodes,
+           GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr")
+
+```
+
+## Working with visual attributes - Nodes
+
+```{r}
+
+# Rename Department field to group
+GAStech_nodes <- GAStech_nodes %>%
+  rename(group = Department)
+
+visNetwork (GAStech_nodes,
+            GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+
+```
+
+## Interactivity
+
+```{r interactivity}
+
+visNetwork (GAStech_nodes,
+            GAStech_edges_aggregated) %>%
+  visIgraphLayout(layout = "layout_with_fr") %>%
+  visOptions(highlightNearest = TRUE,
+             nodesIdSelection = TRUE) %>%
+  visLegend() %>%
+  visLayout(randomSeed = 123)
+
+```
+
+
+
+

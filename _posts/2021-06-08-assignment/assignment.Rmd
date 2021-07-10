@@ -11,7 +11,7 @@ output:
     self_contained: false
     code_folding: true
     toc: true
-    toc_depth: 3
+    toc_depth: 4
 ---
 
 
@@ -36,7 +36,8 @@ pacman::p_load(ggplot2,
                tmap, 
                clock,
                forcats,
-               readxl)
+               readxl,
+               lubridate)
 
 ```
 
@@ -121,11 +122,6 @@ We will begin by reviewing all four csv data first. We immediately noticed a few
 
 ```{r csv-data-cleaning}
 
-str(cc)
-str(loyalty)
-str(car)
-str(gps)
-
 #--------------- Cleaning CC data ---------------
 
 #cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT") #Readjust CC timestamp
@@ -135,6 +131,16 @@ cc$timestamp <- date_time_parse(cc$timestamp,
                 format = "%m/%d/%Y  %H:%M") #Readjust CC timestamp
 cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
 cc$last4ccnum <- as_factor(cc$last4ccnum)
+cc$hour <- hour(cc$timestamp)
+cc$period <- case_when(
+  cc$hour >= 21 ~ "Late Evening 9pm to 11.59pm",
+  cc$hour >= 18 ~ "Evening 6pm to 8.59pm",
+  cc$hour >= 12 ~ "Afternoon 12noon to 5.59pm",
+  cc$hour >= 6 ~ "Morning 6am to 11.59am",
+  TRUE ~ "Late Night 12mn to 5.59am"
+)
+cc$dayofmonth <- day(cc$timestamp)
+cc$weekday <- wday(cc$timestamp, label = TRUE)
 
 #--------------- Cleaning Loyalty data ---------------
 
@@ -143,10 +149,13 @@ loyalty$timestamp <- date_time_parse(loyalty$timestamp,
                 zone = "",
                 format = "%m/%d/%Y") #Readjust CC timestamp
 loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
+loyalty$dayofmonth <- day(loyalty$timestamp)
+loyalty$weekday <- wday(loyalty$timestamp, label = TRUE)
 
 #--------------- Cleaning Car Assignment data ---------------
 
 car$CarID <- as_factor(car$CarID)
+car$FullName <- paste(car$FirstName,car$LastName, sep = " ")
 
 #--------------- Cleaning GPS data ---------------
 
@@ -155,6 +164,16 @@ gps$Timestamp <- date_time_parse(gps$Timestamp,
                 zone = "",
                 format = "%m/%d/%Y %H:%M:%S")
 gps$date <- as_date(gps$Timestamp)
+gps$hour <- hour(gps$Timestamp)
+gps$period <- case_when(
+  gps$hour >= 21 ~ "Late Evening 9pm to 11.59pm",
+  gps$hour >= 18 ~ "Evening 6pm to 8.59pm",
+  gps$hour >= 12 ~ "Afternoon 12noon to 5.59pm",
+  gps$hour >= 6 ~ "Morning 6am to 11.59am",
+  TRUE ~ "Late Night 12mn to 5.59am"
+)
+gps$dayofmonth <- day(gps$Timestamp)
+gps$weekday <- wday(gps$Timestamp, label = TRUE)
 
 ```
 
@@ -167,7 +186,7 @@ We will now attempt to find matching rows between the cc and loyalty data.
 #### 4.1.1 Fuzzy String Matching Using Levenshtein Distance  
 We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
 
-```{r levenshtein-distance-matching}
+```{r levenshtein-distance-matching-cc-loyalty}
 
 cc <- tibble::rowid_to_column(cc, "ID") #Create a numeric id column
 loyalty <- tibble::rowid_to_column(loyalty, "ID") #Create a numeric id column
@@ -199,7 +218,7 @@ cc_loyalty <- match.s1.s2 %>%
 #### 4.1.2 Extracting Best Matching Pairs     
 Let's now extract the matching credit card-loyalty pairs according to 80% matching of their comparative distance.
 
-```{r extract-pairs}
+```{r extract-cc-loyalty-pairs}
 
 cc_loyalty_unique <- dcast(cc_loyalty, last4ccnum + loyaltynum ~ adist) #Long to wide by transposing adist
 cc_loyalty_unique$Total <- rowSums(cc_loyalty_unique[,c("0","1","2","3","4","5","11")]) #Sum all rows
@@ -231,6 +250,7 @@ First, we will merge the GPS data with the car assignments.
 
 # GPS Data Manipulation
 gps_name <- left_join(gps,car, by = c("id" = "CarID")) # Merge car assignments to gps data
+gps_name$RoleNName <- paste(gps_name$id, gps_name$CurrentEmploymentTitle, gps_name$FullName, sep = " ")
 gps_name$Timestamp <- as.POSIXct(gps_name$Timestamp, format = "%m/%d/%Y  %H:%M:%S", tz = "GMT") # Timestamp switching to month-day-year format
 gps_name <- gps_name[with(gps_name,order(id,Timestamp)),] # Sort first by ID in ascending order and then Timestamp by oldest to newest
 gps_name <- gps_name %>% # Add running number in the first column
@@ -240,6 +260,7 @@ gps_name <- gps_name %>% # Create additional column indicating time taken from p
     mutate(Delta = Timestamp - lag(Timestamp, default = first(Timestamp)))
 
 gps_name$Delta <- as.numeric(gps_name$Delta)
+gps_name$Delta_Hours <- round(gps_name$Delta / 60 / 60, 1) # Create column to convert Delta seconds into hours with one decimal place
 
 ```
 
@@ -267,6 +288,8 @@ spots <- spots %>% mutate(
       between(long, 24.82586806, 24.82598723)  ~ "Abila Airport", # 35 features
     between(lat, 36.07434876, 36.07443715) & 
       between(long, 24.84592966, 24.84598782)  ~ "Abila Scrapyard", # 4 features
+    between(lat, 36.06342076, 36.06349309) & 
+      between(long, 24.85096457, 24.85103679)  ~ "Abila Zacharo", # 66 features
     between(lat, 36.07660977, 36.07669909) & 
       between(long, 24.85756408, 24.85764247)  ~ "Albert's Fine Clothing", # 155 features
     between(lat, 36.08172086, 36.08182543) & 
@@ -289,6 +312,8 @@ spots <- spots %>% mutate(
       between(long, 24.89517609, 24.89526281)  ~ "Chostus Hotel", # 11 features
     between(lat, 36.05462322, 36.05469486) & 
       between(long, 24.88977034, 24.88983886)  ~ "Coffee Cameleon", # 29 features
+    between(lat, 36.07332048, 36.07336116) & 
+      between(long, 24.86416419, 24.86420583)  ~ "Daily Dealz", # 36 features
     between(lat, 36.07292088, 36.07301365) & 
       between(long, 24.88396447, 24.88405897)  ~ "Drill Site Manager Marin's Home", # 26 features
     between(lat, 36.08442031, 36.08449538) & 
@@ -305,10 +330,12 @@ spots <- spots %>% mutate(
       between(long, 24.85756416, 24.85766744)  ~ "Engineer Felix's Home", # 22 features
     between(lat, 36.07622023, 36.07626546) & 
       between(long, 24.87466429, 24.87471053)  ~ "Environmental Safety Advisor Willem's Home", # 33 features
+    between(lat, 36.07212045, 36.07213193) & 
+      between(long, 24.84132949, 24.84134818)  ~ "Frank's Fuel", # 2 features
     between(lat, 36.0603222, 36.06044736) & 
       between(long, 24.90556693, 24.90569385)  ~ "Frydos Autosupply n' More", # 85 features
     between(lat, 36.04802098, 36.04805422) & 
-      between(long, 24.87956497, 24.87957691)  ~ "Gastech", # 738 features
+      between(long, 24.87956497, 24.87957691)  ~ "GasTech & Jack's Magical Beans", # 738 features
     between(lat, 36.05970763, 36.05981097) & 
       between(long, 24.85797552, 24.8580772)  ~ "General Grocer", # 47 features
     between(lat, 36.06362146, 36.06371539) & 
@@ -323,6 +350,8 @@ spots <- spots %>% mutate(
       between(long, 24.87788423, 24.87795559)  ~ "IT Technician Isak's Home", # 21 features
     between(lat, 36.06722012, 36.06731624) & 
       between(long, 24.8858687, 24.88596759)  ~ "IT Technician Lucas's Home", # 23 features
+    between(lat, 36.06582037, 36.06584879) & 
+      between(long, 24.85236427, 24.85241027)  ~ "Kalami Kafenion", # 47 features
     between(lat, 36.05442247, 36.05453641) & 
       between(long, 24.89986596, 24.89998054)  ~ "Katerina’s Café", # 158 features
     between(lat, 36.05840347, 36.05849041) & 
@@ -340,17 +369,66 @@ spots <- spots %>% mutate(
     between(lat, 36.05842222, 36.05853828) & 
       between(long, 24.90096522, 24.90107874)  ~ "Shared Home D - Adra Varja Felix", # 73 features
     between(lat, 36.06772112, 36.06784956) & 
-      between(long, 24.89906521, 24.89917328)  ~ "Site Control Hideki's Home", # 21 features    
+      between(long, 24.89906521, 24.89917328)  ~ "Site Control Hideki's Home", # 21 features
+    between(lat, 36.06774029, 36.06776587) & 
+      between(long, 24.87148791, 24.87150031)  ~ "U-Pump", # 4 features      
     ))
 
 sum(is.na(spots$Location))
-length(grep("Environmental Safety Advisor Willem's Home", spots$Location))
+length(grep("Daily Dealz", spots$Location))
 
 write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_latest.csv")
 
-write_csv(cc,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_date.csv")
+#write_csv(cc,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_date.csv")
 
 ```
+
+
+
+```{r levenshtein-distance-matching-cc-GPS}
+
+cc$concat2 <- paste(cc$date,cc$location,cc$hour) #Create a second separate column of unique values using concatenated values in the cc data
+spots$concat <- paste(spots$date,spots$Location,spots$hour) #Create a separate column of unique values using concatenated values in the distilled GPS data
+dist.concat2 <- adist(cc$concat2,spots$concat, partial = TRUE, ignore.case = TRUE) #Create a matrix with the Standard Levenshtein distance between both newly created concat columns
+min.concat2 <- apply(dist.concat2, 1, min) #Extract pairs with minimum distance
+
+match.s3.s4 <- NULL
+for (j in 1:nrow(dist.concat2))
+{
+  s4.j <- match(min.concat2[j], dist.concat2[j,])
+  s3.j <- j
+  match.s3.s4 <- rbind(data.frame(spots.j=s4.j,
+                                    cc.j=s3.j,
+                                    spots_concat=spots[s4.j,]$concat,
+                                    cc_concat2=cc[s3.j,]$concat2,
+                                    adist=min.concat2[j]),match.s3.s4)
+  }
+    
+cc_spots <- match.s3.s4 %>%
+  left_join(dplyr::select(cc, last4ccnum, ID), by = c("cc.j" = "ID")) %>% #Add in CC num column
+  left_join(dplyr::select(spots, RoleNName, No), by = c("spots.j" = "No")) #Add in Spots num column
+
+```
+
+
+
+```{r extract-cc-spots-pairs}
+
+cc_spots_unique <- dcast(cc_spots, last4ccnum + RoleNName ~ adist) #Long to wide by transposing adist
+cc_spots_unique$Total <- rowSums(cc_spots_unique[,c("0","1","2","3","4","5","11")]) #Sum all rows
+cc_spots_unique$Sum01 <- rowSums(cc_spots_unique[,c("0","1")]) #Sum only column 1 and 2
+cc_spots_unique$MatchPctTotal <- percent(cc_spots_unique[,3] / cc_spots_unique$Total) #Calc % of perfect (0) matches against Total
+cc_spots_unique$MatchPct01 <- percent(cc_spots_unique$Sum01 / cc_spots_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
+
+cc_loyalty_unique_80 <- cc_loyalty_unique %>% 
+  filter (MatchPct01 >= "80.00%")
+n_distinct(cc_loyalty_unique_80$last4ccnum)
+n_distinct(cc_loyalty_unique_80$loyaltynum)
+
+write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
+
+```
+
 
 
 
