@@ -16,9 +16,10 @@ output:
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(fig.retina = 3,
+                      echo = FALSE)
 
-# Installing and loading necessary packages
+# Install and load necessary packages
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(ggplot2, 
                tidyverse, 
@@ -37,7 +38,8 @@ pacman::p_load(ggplot2,
                clock,
                forcats,
                readxl,
-               lubridate)
+               lubridate,
+               fuzzyjoin)
 
 ```
 
@@ -58,7 +60,6 @@ YES
 Provide a link to your video.  Example:
 http://www.westbirmingham.ac.uk/uwb-smith-mc2-video.wmv
 
---- 
 
 ## 1. Introduction
 ### 1.1 Our Mission (Should We Accept It!)
@@ -82,24 +83,50 @@ A cursory look at the dataset reveals the following data types:
 | Abila               | Geospatial  | Abila's road network                                |
 | Kronos Island       | Geospatial  | Polygon showing Kronos Island's admin boundary      |
 
+An in-depth look at the dataset reveals the following fields:
+
+| File Name          | cc    | loyalty | gps     | car    | mc2    |
+| ---:               | :----:| :----:  | :----:  | :----: | :----: |
+| File Type          | csv   | csv     | csv     | csv    | pic    |
+| Count              | 1,490 | 1,392   | 685,169 | 44     | -      |
+| Date Format        | m/d/y | m/d/y   | m/d/y   | -      | -      |
+| Time Format        | h:m   | -       | h:m:s   | -      | -      |
+| Location           | Yes   | Yes     | -       | -      | Yes    |
+| Price              | Yes   | Yes     | -       | -      | -      |
+| last4ccnum         | Yes   | -       | -       | -      | -      |
+| loyaltynum         | -     | Yes     | -       | -      | -      |
+| ID                 | -     | -       | Yes     | Yes    | -      |
+| Latlong            | -     | -       | Yes     | -      | -      |
+| Names              | -     | -       | -       | Yes    | -      |
+| Employment Details | -     | -       | -       | Yes    | -      |
+
+Not all files have the same fields. While it's easy to merge gps and car data using its unique ID, there are no unique fields tying the cc and loyalty data together. Thus, merging both cc and loyalty data would require some form of fuzzy joining logic. Separately, we would need to identify the various locations within the gps data, using both the cc and mc2 map.
+
 With these dataset in mind, the following considerations would need to be addressed:
 
-### 2.1 Fuzzy Matching (Credit Card with Loyalty Data)
+### 2.1 Fuzzy Matching
 
+ABC
 Explain levenshtein distance here
 
+### 2.2 Map Visualisations of GPS Data
 
-### 2.2 Visualising Large Counts of GPS Data
+ABC
 
-ABCDE
+### 2.3 Non-Map Visualisations of GPS Data
 
+ABC
+Calendar Heatmap (GPS Points per day) http://visualdata.wustl.edu/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/University%20of%20Buenos%20Aires%20-%20Tralice/
+Parallel Coordinates Graph (Location, Date, Timestamp, Price, Name)
+Gantt Chart
+Explore Hippokampos RadViz Clock Average Location https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/Central%20South%20University/
 
 ---
 
 ## 3.	Data Understanding
 We start by loading all the necessary datasets provided in the VAST Challenge 2021 Mini-Challenge 2.
 
-```{r load-all-datasets, echo = T, results = 'hide'}
+```{r load-all-datasets, echo = T, message = FALSE, results = 'hide'}
 
 # Loading all datasets and image
 cc <- readr::read_csv("data/cc_data.csv") # Add credit card data
@@ -119,6 +146,7 @@ We will begin by reviewing all four csv data first. We immediately noticed a few
 1. Date format within the timestamp were in a MM-DD-YYYY H:M format  
 2. Katerina's Cafe contains unique characters, which may cause downstream problems during our analysis  
 3. ID and Last4CCNum are treated as regular double numbers, instead of a character type.
+4. ABC
 
 ```{r csv-data-cleaning}
 
@@ -127,7 +155,7 @@ We will begin by reviewing all four csv data first. We immediately noticed a few
 #cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT") #Readjust CC timestamp
 #cc$timestamp <- as.character(cc$timestamp)
 cc$timestamp <- date_time_parse(cc$timestamp,
-                zone = "",
+                zone = "UTC",
                 format = "%m/%d/%Y  %H:%M") #Readjust CC timestamp
 cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
 cc$last4ccnum <- as_factor(cc$last4ccnum)
@@ -141,16 +169,24 @@ cc$period <- case_when(
 )
 cc$dayofmonth <- day(cc$timestamp)
 cc$weekday <- wday(cc$timestamp, label = TRUE)
+cc <- tibble::rowid_to_column(cc, "ID") #Create a numeric id column
+cc$date <- as.Date(cc$timestamp) #Create a separate column just for dates in the cc data
+cc$hour <- as.numeric(format(cc$timestamp,"%H")) #Create a separate column just for hours in the cc data
+cc$concat <- paste(cc$date,cc$location,cc$price) #Create a separate column of unique values using concatenated values in the cc data
+cc$concat2 <- paste(cc$date,cc$location,cc$hour) #Create a second separate column of unique values using concatenated values in the cc data
+cc$concat_cc_spots <- paste(cc$date,cc$location,cc$hour) #Create a second separate column of unique values using concatenated values in the cc data
 
 #--------------- Cleaning Loyalty data ---------------
 
 #loyalty$timestamp <- as.POSIXct(loyalty$timestamp, format = "%m/%d/%Y", tz = "GMT") #Readjust Loyalty timestamp
 loyalty$timestamp <- date_time_parse(loyalty$timestamp,
-                zone = "",
+                zone = "UTC",
                 format = "%m/%d/%Y") #Readjust CC timestamp
 loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
 loyalty$dayofmonth <- day(loyalty$timestamp)
 loyalty$weekday <- wday(loyalty$timestamp, label = TRUE)
+loyalty$concat <- paste(loyalty$timestamp,loyalty$location,loyalty$price) #Create a separate column of unique values using concatenated values in the loyalty data
+loyalty <- tibble::rowid_to_column(loyalty, "ID") #Create a numeric id column
 
 #--------------- Cleaning Car Assignment data ---------------
 
@@ -161,7 +197,7 @@ car$FullName <- paste(car$FirstName,car$LastName, sep = " ")
 
 gps$id <- as_factor(gps$id)
 gps$Timestamp <- date_time_parse(gps$Timestamp,
-                zone = "",
+                zone = "UTC",
                 format = "%m/%d/%Y %H:%M:%S")
 gps$date <- as_date(gps$Timestamp)
 gps$hour <- hour(gps$Timestamp)
@@ -186,14 +222,8 @@ We will now attempt to find matching rows between the cc and loyalty data.
 #### 4.1.1 Fuzzy String Matching Using Levenshtein Distance  
 We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
 
-```{r levenshtein-distance-matching-cc-loyalty}
+```{r levenshtein-distance-matching-cc-loyalty, eval = FALSE}
 
-cc <- tibble::rowid_to_column(cc, "ID") #Create a numeric id column
-loyalty <- tibble::rowid_to_column(loyalty, "ID") #Create a numeric id column
-cc$date <- as.Date(cc$timestamp) #Create a separate column just for dates in the cc data
-cc$hour <- as.numeric(format(cc$timestamp,"%H")) #Create a separate column just for hours in the cc data
-cc$concat <- paste(cc$date,cc$location,cc$price) #Create a separate column of unique values using concatenated values in the cc data
-loyalty$concat <- paste(loyalty$timestamp,loyalty$location,loyalty$price) #Create a separate column of unique values using concatenated values in the loyalty data
 dist.concat <- adist(cc$concat,loyalty$concat, partial = TRUE, ignore.case = TRUE) #Creates a matrix with the Standard Levenshtein distance between both newly created concat columns
 min.concat <- apply(dist.concat, 1, min) #Extract pairs with minimum distance
 
@@ -218,7 +248,7 @@ cc_loyalty <- match.s1.s2 %>%
 #### 4.1.2 Extracting Best Matching Pairs     
 Let's now extract the matching credit card-loyalty pairs according to 80% matching of their comparative distance.
 
-```{r extract-cc-loyalty-pairs}
+```{r extract-cc-loyalty-pairs, eval = FALSE}
 
 cc_loyalty_unique <- dcast(cc_loyalty, last4ccnum + loyaltynum ~ adist) #Long to wide by transposing adist
 cc_loyalty_unique$Total <- rowSums(cc_loyalty_unique[,c("0","1","2","3","4","5","11")]) #Sum all rows
@@ -273,6 +303,7 @@ spots <- gps_name %>% # Filtering out gps coordinates where stationary for more 
   filter(Delta > 600)
 spots$No <- rep(1:2965, times = 1) # Redo running number in the first column
 
+
 ```
 
 #### 4.2.3 Identifying Stationary GPS Points
@@ -281,7 +312,6 @@ Next, using the map and other data sources, we identify the locations of each of
 ```{r identifying-stationary-GPS-points}
 
 spots$Location <- 1 # Create a Location column
-
 spots <- spots %>% mutate(
   Location = case_when(
     between(lat, 36.05092013, 36.05102938) & 
@@ -290,94 +320,218 @@ spots <- spots %>% mutate(
       between(long, 24.84592966, 24.84598782)  ~ "Abila Scrapyard", # 4 features
     between(lat, 36.06342076, 36.06349309) & 
       between(long, 24.85096457, 24.85103679)  ~ "Abila Zacharo", # 66 features
-    between(lat, 36.07660977, 36.07669909) & 
-      between(long, 24.85756408, 24.85764247)  ~ "Albert's Fine Clothing", # 155 features
+    between(lat, 36.07712237, 36.07715385) & 
+      between(long, 24.87617634, 24.87621582)  ~ "Ahaggo Museum", # 5 features
+    between(lat, 36.07522801, 36.07530344) & 
+      between(long, 24.85626503, 24.85634849)  ~ "Albert's Fine Clothing", # 20 features
     between(lat, 36.08172086, 36.08182543) & 
       between(long, 24.85086882, 24.85096705)  ~ "Bean There Done That", # 46 features
-    between(lat, 36.05572125, 36.05584094) & 
-      between(long, 24.90246542, 24.90258487)  ~ "Brew've Been Served", # 143 features
+    between(lat, 36.05402149, 36.05413903) & 
+      between(long, 24.90116515, 24.90128202)  ~ "Brew've Been Served", # 106 features
+    between(lat, 36.07332048, 36.07336116) & 
+      between(long, 24.86416419, 24.86420583)  ~ "Brewed Awakenings", # 36 features
     between(lat, 36.06582469, 36.065941) & 
-      between(long, 24.90097567, 24.90108865)  ~ "Building Control Stenig's Home", # 20 features
+      between(long, 24.90097567, 24.90108865)  ~ "20 Building Control Stenig's Home", # 20 features
     between(lat, 36.05851786, 36.05860144) & 
       between(long, 24.8808655, 24.88092654)  ~ "Carlyle Chemical Inc.", # 30 features
-    between(lat, 36.05859158, 36.05859887) & 
-      between(long, 24.85790261, 24.85799357)  ~ "Carly's Coffee", # 3 features
     between(lat, 36.07818062, 36.07821857) & 
-      between(long, 24.87211555, 24.8721508)  ~ "CFO Ingrid's Home", # 27 features
+      between(long, 24.87211555, 24.8721508)  ~ "4 CFO Ingrid's Home", # 27 features
     between(lat, 36.07682044, 36.07685752) & 
-      between(long, 24.8658641, 24.86589901)  ~ "CIO Ada's Home", # 35 features
+      between(long, 24.8658641, 24.86589901)  ~ "10 CIO Ada's Home", # 35 features
     between(lat, 36.0721156, 36.07215701) & 
-      between(long, 24.87458425, 24.8746267)  ~ "COO Orhan's Home", # 29 features
+      between(long, 24.87458425, 24.8746267)  ~ "32 COO Orhan's Home", # 29 features
     between(lat, 36.07062423, 36.07073983) & 
       between(long, 24.89517609, 24.89526281)  ~ "Chostus Hotel", # 11 features
     between(lat, 36.05462322, 36.05469486) & 
       between(long, 24.88977034, 24.88983886)  ~ "Coffee Cameleon", # 29 features
-    between(lat, 36.07332048, 36.07336116) & 
-      between(long, 24.86416419, 24.86420583)  ~ "Daily Dealz", # 36 features
+    between(lat, 36.08954231, 36.08962196) & 
+      between(long, 24.86066508, 24.8607611)  ~ "Desafio Golf Course", # 10 features
     between(lat, 36.07292088, 36.07301365) & 
-      between(long, 24.88396447, 24.88405897)  ~ "Drill Site Manager Marin's Home", # 26 features
+      between(long, 24.88396447, 24.88405897)  ~ "26 Drill Site Manager Marin's Home", # 26 features
     between(lat, 36.08442031, 36.08449538) & 
-      between(long, 24.86416741, 24.8642387)  ~ "Drill Technician Elsa's Home", # 25 features
+      between(long, 24.86416741, 24.8642387)  ~ "7 Drill Technician Elsa's Home", # 25 features
     between(lat, 36.08424703, 36.08432477) & 
-      between(long, 24.8563809, 24.8564637)  ~ "Drill Technician Gustav's Home", # 13 features
+      between(long, 24.8563809, 24.8564637)  ~ "9 Drill Technician Gustav's Home", # 13 features
     between(lat, 36.0726185, 36.07380904) & 
-      between(long, 24.87510166, 24.87613744)  ~ "Drill Technician Isande's Home", # 26 features
+      between(long, 24.87510166, 24.87613744)  ~ "28 Drill Technician Isande's Home", # 26 features
     between(lat, 36.06922564, 36.06931513) & 
-      between(long, 24.88416486, 24.88426267)  ~ "Drill Technician Kare's Home", # 20 features
+      between(long, 24.88416486, 24.88426267)  ~ "27 Drill Technician Kare's Home", # 20 features
     between(lat, 36.08542073, 36.08550845) & 
-      between(long, 24.86036422, 24.86045943)  ~ "Engineer Lars's Home", # 37 features
+      between(long, 24.86036422, 24.86045943)  ~ "2 Engineer Lars's Home", # 37 features
     between(lat, 36.08664252, 36.08672442) & 
-      between(long, 24.85756416, 24.85766744)  ~ "Engineer Felix's Home", # 22 features
+      between(long, 24.85756416, 24.85766744)  ~ "3 Engineer Felix's Home", # 22 features
     between(lat, 36.07622023, 36.07626546) & 
-      between(long, 24.87466429, 24.87471053)  ~ "Environmental Safety Advisor Willem's Home", # 33 features
+      between(long, 24.87466429, 24.87471053)  ~ "35 Environmental Safety Advisor Willem's Home", # 33 features
     between(lat, 36.07212045, 36.07213193) & 
       between(long, 24.84132949, 24.84134818)  ~ "Frank's Fuel", # 2 features
-    between(lat, 36.0603222, 36.06044736) & 
-      between(long, 24.90556693, 24.90569385)  ~ "Frydos Autosupply n' More", # 85 features
+    between(lat, 36.05492145, 36.05503511) & 
+      between(long, 24.90176782, 24.90188061)  ~ "Frydos Autosupply n' More", # 29 features
     between(lat, 36.04802098, 36.04805422) & 
-      between(long, 24.87956497, 24.87957691)  ~ "GasTech & Jack's Magical Beans", # 738 features
+      between(long, 24.87956497, 24.87957691)  ~ "GasTech", # 738 features
     between(lat, 36.05970763, 36.05981097) & 
-      between(long, 24.85797552, 24.8580772)  ~ "General Grocer", # 47 features
+      between(long, 24.85797552, 24.8580772)  ~ "Gelatogalore", # 47 features
+    between(lat, 36.06034564, 36.06043016) & 
+      between(long, 24.85646426, 24.85657454)  ~ "General Grocer", # 12 features
+    between(lat, 36.05572125, 36.05584094) & 
+      between(long, 24.90246542, 24.90258487)  ~ "Guy's Gyros", # 143 features
     between(lat, 36.06362146, 36.06371539) & 
       between(long, 24.88586605, 24.88595859)  ~ "Hallowed Grounds", # 70 features
-     between(lat, 36.08412146, 36.08420924) & 
-      between(long, 24.85896842, 24.85905081)  ~ "Hydraulic Technician Axel's Home", # 23 features
-     between(lat, 36.08782802, 36.08793196) & 
-      between(long, 24.85627136, 24.8563725)  ~ "Hydraulic Technician Vira's Home", # 24 features
+    between(lat, 36.07660977, 36.07669909) & 
+      between(long, 24.85756408, 24.85764247)  ~ "Hippokampos", # 155 features
+    between(lat, 36.08412146, 36.08420924) & 
+      between(long, 24.85896842, 24.85905081)  ~ "11 Hydraulic Technician Axel's Home", # 23 features
+    between(lat, 36.08782802, 36.08793196) & 
+      between(long, 24.85627136, 24.8563725)  ~ "19 Hydraulic Technician Vira's Home", # 24 features
     between(lat, 36.06641679, 36.06650723) & 
-      between(long, 24.88256875, 24.88265687)  ~ "IT Helpdesk Nils's Home", # 31 features
+      between(long, 24.88256875, 24.88265687)  ~ "1 IT Helpdesk Nils's Home", # 31 features
     between(lat, 36.06729646, 36.06736745) & 
-      between(long, 24.87788423, 24.87795559)  ~ "IT Technician Isak's Home", # 21 features
+      between(long, 24.87788423, 24.87795559)  ~ "5 IT Technician Isak's Home", # 21 features
     between(lat, 36.06722012, 36.06731624) & 
-      between(long, 24.8858687, 24.88596759)  ~ "IT Technician Lucas's Home", # 23 features
+      between(long, 24.8858687, 24.88596759)  ~ "8 IT Technician Lucas's Home", # 23 features
+    between(lat, 36.06749651, 36.0675518) & 
+      between(long, 24.87330651, 24.873366)  ~ "Jack's Magical Beans", # 31 features
     between(lat, 36.06582037, 36.06584879) & 
       between(long, 24.85236427, 24.85241027)  ~ "Kalami Kafenion", # 47 features
     between(lat, 36.05442247, 36.05453641) & 
       between(long, 24.89986596, 24.89998054)  ~ "Katerina’s Café", # 158 features
+    between(lat, 36.05292229, 36.05296701) & 
+      between(long, 24.84936915, 24.84941679)  ~ "Kronos Capital", # 6 features
+    between(lat, 36.06582196, 36.06587998) & 
+      between(long, 24.8497762, 24.84983936)  ~ "Kronos Mart", # 9 features
+    between(lat, 36.06523446, 36.06534083) & 
+      between(long, 24.83307421, 24.83318494)  ~ "Kronos Pipe and Irrigation", # 7 features
+    between(lat, 36.06402993, 36.06410072) & 
+      between(long, 24.84137818, 24.84144338)  ~ "Maximum Iron and Steel", # 9 features
     between(lat, 36.05840347, 36.05849041) & 
       between(long, 24.88546548, 24.88553455)  ~ "Nationwide Refinery", # 41 features
+    between(lat, 36.05859158, 36.05859887) & 
+      between(long, 24.85790261, 24.85799357)  ~ "Octavio's Office Supplies", # 3 features
     between(lat, 36.05192066, 36.05197575) & 
       between(long, 24.87076418, 24.87082137)  ~ "Ouzeri Elian", # 67 features
     between(lat, 36.06764972, 36.06775002) & 
-      between(long, 24.90243213, 24.9025445)  ~ "Perimeter Control Edvard's Home", # 20 features
+      between(long, 24.90243213, 24.9025445)  ~ "34 Perimeter Control Edvard's Home", # 20 features
+    between(lat, 36.06324941, 36.06330782) & 
+      between(long, 24.85226894, 24.8523291)  ~ "Roberts and Sons", # 9 features
     between(lat, 36.05942407, 36.05952152) & 
-      between(long, 24.89476557, 24.8948649)  ~ "Shared Home A - Linnea Kanon Bertrand", # 72 features
+      between(long, 24.89476557, 24.8948649)  ~ "Shared Home A - 6 Linnea 25 Kanon 29 Bertrand", # 72 features
     between(lat, 36.06332304, 36.06343537) & 
-      between(long, 24.89607033, 24.89617856)  ~ "Shared Home B - Lidelse Birgitta Hennie", # 60 features
+      between(long, 24.89607033, 24.89617856)  ~ "Shared Home B - 14 Lidelse 18 Birgitta 21 Hennie", # 60 features
     between(lat, 36.06242283, 36.06253955) & 
-      between(long, 24.89877023, 24.89888179)  ~ "Shared Home C - Sven Minke Brand", # 68 features
+      between(long, 24.89877023, 24.89888179)  ~ "Shared Home C - 17 Sven 24 Minke 33 Brand", # 68 features
     between(lat, 36.05842222, 36.05853828) & 
-      between(long, 24.90096522, 24.90107874)  ~ "Shared Home D - Adra Varja Felix", # 73 features
+      between(long, 24.90096522, 24.90107874)  ~ "Shared Home D - 22 Adra 23 Varja 30 Felix", # 73 features
+    between(lat, 36.0603222, 36.06044736) & 
+      between(long, 24.90556693, 24.90569385)  ~ "Shared Home E - 13 Inga 15 Loreto 16 Isia 21 Hennie", # 85 features
+    between(lat, 36.05282139, 36.05288367) & 
+      between(long, 24.86856868, 24.8686314)  ~ "Shoppers' Delight", # 17 features
     between(lat, 36.06772112, 36.06784956) & 
-      between(long, 24.89906521, 24.89917328)  ~ "Site Control Hideki's Home", # 21 features
+      between(long, 24.89906521, 24.89917328)  ~ "12 Site Control Hideki's Home", # 21 features
+    between(lat, 36.05409586, 36.05420832) & 
+      between(long, 24.90806584, 24.90817838)  ~ "Stewart and Sons Fabrication", # 36 features
     between(lat, 36.06774029, 36.06776587) & 
-      between(long, 24.87148791, 24.87150031)  ~ "U-Pump", # 4 features      
+      between(long, 24.87148791, 24.87150031)  ~ "U-Pump", # 4 features
+    between(lat, 36.05012433, 36.05021624) & 
+      between(long, 24.9003978, 24.90047475)  ~ "Anonymous Site 1", # 6 features
+    between(lat, 36.06314781, 36.06324321) & 
+      between(long, 24.90010823, 24.90018668)  ~ "Anonymous Site 2", # 7 features
+    between(lat, 36.05893131, 36.05900826) & 
+      between(long, 24.89277554, 24.89284962)  ~ "Anonymous Site 3", # 7 features
+    between(lat, 36.08061881, 36.08067087) & 
+      between(long, 24.84681621, 24.84688282)  ~ "Anonymous Site 4", # 7 features
+    between(lat, 36.06944928, 36.0695319) & 
+      between(long, 24.84147082, 24.84157048)  ~ "Anonymous Site 5", # 8 features
+    between(lat, 36.05149231, 36.05253234) & 
+      between(long, 24.87495168, 24.87611086)  ~ "Anonymous Site 6", # 13 features
+    between(lat, 36.05543848, 36.05657576) & 
+      between(long, 24.86618187, 24.86735)  ~ "Anonymous Site 7", # 7 features 
+    between(lat, 36.07099038, 36.07200089) & 
+      between(long, 24.86869468, 24.86985682)  ~ "Anonymous Site 8", # 10 features 
+    ))
+
+spots$concat_cc_spots <- paste(spots$date,spots$Location,spots$hour) #Create a separate column of unique values using concatenated values in the distilled GPS data
+
+spots_median <- spots %>% # Extract median latlong of locations
+  group_by(Location) %>%
+    summarise(lat.median = median(lat), long.median = median(long)) %>%
+  filter(!is.na(Location)) %>% # Exclude remaining few unmatched locations
+  ungroup()
+
+spots_median <- spots_median %>%
+  mutate(Location.Type = case_when(
+    Location %in% c("Anonymous Site 1",
+                    "Anonymous Site 2",
+                    "Anonymous Site 3",
+                    "Anonymous Site 4",
+                    "Anonymous Site 5",
+                    "Anonymous Site 6",
+                    "Anonymous Site 7",
+                    "Anonymous Site 8") ~ "Unknown",
+    Location %in% c("Bean There Done That",
+                    "Brew've Been Served",
+                    "Brewed Awakenings",
+                    "Coffee Cameleon",
+                    "Jack's Magical Beans",
+                    "Hallowed Grounds") ~ "Coffee Cafe",
+    Location %in% c("Abila Zacharo",
+                    "Gelatogalore",
+                    "Guy's Gyros",
+                    "Hippokampos",
+                    "Kalami Kafenion",
+                    "Katerina’s Café",
+                    "Ouzeri Elian") ~ "Food Joints",
+    Location %in% c("GasTech") ~ "HQ",
+    Location %in% c("1 IT Helpdesk Nils's Home",
+                    "10 CIO Ada's Home",
+                    "11 Hydraulic Technician Axel's Home",
+                    "12 Site Control Hideki's Home",
+                    "19 Hydraulic Technician Vira's Home",
+                    "2 Engineer Lars's Home",
+                    "20 Building Control Stenig's Home",
+                    "26 Drill Site Manager Marin's Home",
+                    "27 Drill Technician Kare's Home",
+                    "28 Drill Technician Isande's Home",
+                    "3 Engineer Felix's Home",
+                    "32 COO Orhan's Home",
+                    "34 Perimeter Control Edvard's Home",
+                    "35 Environmental Safety Advisor Willem's Home",
+                    "4 CFO Ingrid's Home",
+                    "5 IT Technician Isak's Home",
+                    "7 Drill Technician Elsa's Home",
+                    "8 IT Technician Lucas's Home",
+                    "9 Drill Technician Gustav's Home",
+                    "Shared Home A - 6 Linnea 25 Kanon 29 Bertrand",
+                    "Shared Home B - 14 Lidelse 18 Birgitta 21 Hennie",
+                    "Shared Home C - 17 Sven 24 Minke 33 Brand",
+                    "Shared Home D - 22 Adra 23 Varja 30 Felix",
+                    "Shared Home E - 13 Inga 15 Loreto 16 Isia 21 Hennie") ~ "Residential",
+    Location %in% c("Abila Scrapyard",
+                    "Carlyle Chemical Inc.",
+                    "Kronos Pipe and Irrigation",
+                    "Maximum Iron and Steel",
+                    "Nationwide Refinery",
+                    "Stewart and Sons Fabrication") ~ "Industrial",    
+    Location %in% c("Ahaggo Museum",
+                    "Albert's Fine Clothing",
+                    "Kronos Mart",
+                    "Octavio's Office Supplies",
+                    "Shoppers' Delight",
+                    "General Grocer",
+                    "Roberts and Sons") ~ "Leisure & Shopping",
+    Location %in% c("Abila Airport",
+                    "Chostus Hotel",
+                    "Desafio Golf Course",
+                    "Kronos Capital") ~ "Complex",
+    Location %in% c("Frank's Fuel",
+                    "Frydos Autosupply n' More",
+                    "U-Pump") ~ "Transport",
     ))
 
 sum(is.na(spots$Location))
-length(grep("Daily Dealz", spots$Location))
+length(grep("Frydos Autosupply n' More", spots$Location))
 
 write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_latest.csv")
+
+write_csv(spots_median,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_median.csv")
 
 #write_csv(cc,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_date.csv")
 
@@ -385,10 +539,8 @@ write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS
 
 
 
-```{r levenshtein-distance-matching-cc-GPS}
+```{r levenshtein-distance-matching-cc-GPS, eval = FALSE}
 
-cc$concat2 <- paste(cc$date,cc$location,cc$hour) #Create a second separate column of unique values using concatenated values in the cc data
-spots$concat <- paste(spots$date,spots$Location,spots$hour) #Create a separate column of unique values using concatenated values in the distilled GPS data
 dist.concat2 <- adist(cc$concat2,spots$concat, partial = TRUE, ignore.case = TRUE) #Create a matrix with the Standard Levenshtein distance between both newly created concat columns
 min.concat2 <- apply(dist.concat2, 1, min) #Extract pairs with minimum distance
 
@@ -412,22 +564,48 @@ cc_spots <- match.s3.s4 %>%
 
 
 
-```{r extract-cc-spots-pairs}
+```{r extract-cc-spots-pairs, eval = FALSE}
 
 cc_spots_unique <- dcast(cc_spots, last4ccnum + RoleNName ~ adist) #Long to wide by transposing adist
-cc_spots_unique$Total <- rowSums(cc_spots_unique[,c("0","1","2","3","4","5","11")]) #Sum all rows
+cc_spots_unique$Total <- rowSums(cc_spots_unique[,c("0","1","2","3","7","8","9","10","11","12","13","14","15","16","17","18","19","21")]) #Sum all rows
 cc_spots_unique$Sum01 <- rowSums(cc_spots_unique[,c("0","1")]) #Sum only column 1 and 2
 cc_spots_unique$MatchPctTotal <- percent(cc_spots_unique[,3] / cc_spots_unique$Total) #Calc % of perfect (0) matches against Total
 cc_spots_unique$MatchPct01 <- percent(cc_spots_unique$Sum01 / cc_spots_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
 
-cc_loyalty_unique_80 <- cc_loyalty_unique %>% 
+cc_spots_unique_80 <- cc_spots_unique %>% 
   filter (MatchPct01 >= "80.00%")
-n_distinct(cc_loyalty_unique_80$last4ccnum)
-n_distinct(cc_loyalty_unique_80$loyaltynum)
+n_distinct(cc_spots_unique_80$last4ccnum)
+n_distinct(cc_spots_unique_80$RoleNName)
 
 write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
 
 ```
+
+Using fuzzyjoin (use Dcast median values)
+
+```{r fuzzyjoin}
+
+spots_cc <- stringdist_join(cc,spots,
+                       by = "concat_cc_spots",
+                       mode = "left",
+                       method = "jw",
+                       ignore_case = TRUE,
+                       max_dist = 0.2,
+                       distance_col = "dist")
+
+spots_cc_summary <- spots_cc %>%
+  group_by(concat_cc_spots.x) %>%
+  slice_min (order_by = dist, n = 1) %>%
+  arrange (desc(dist)) %>%
+  filter(dist < 0.1)
+
+write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_cc.csv")
+
+write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_cc_summary.csv")
+
+```
+
+
 
 
 
@@ -493,15 +671,27 @@ spot_list <- read_excel("data/spots and list.xlsx", sheet = "LIST") #Import Exce
 
 ## 5.	Data Exploration Analysis
 
-**Questions**
+Here we will answer the VAST Challenge questions.
 
-1 –– Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words.
+### 5.1 Question 1 And Its Answers
 
-Provide your answer and corresponding images here.
+Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words.
 
-1a. Using purely the credit card data, let's examine the locations by date using a calendar heatmap.
+#### 5.1.1 Show popular locations
 
-```{r}
+#### 5.1.2 What type of location is Hippokampos? It seems near to Gastech
+
+#### 5.1.3 Kronos Mart's Txns Are One Day Apart
+
+#### 5.1.4 Show spending outliers
+
+#### 5.1.5 Some CC txns occur at the same time (everyday at noon)
+
+#### 5.1.99 Provide your answer and corresponding images here.
+
+1a. Using only the credit card data, we'll examine the locations by date using a calendar heatmap.
+
+```{r calendar-heatmap}
 
 cc_calendar <- cc %>% count(date, location)
 cc_calendar_ggplot <- ggplot(complete(cc_calendar, date, location), aes(x = date, y = location)) + 
@@ -549,25 +739,76 @@ cc_calendar_ggplot_one
 ```
 
 
-2 – Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
+### 5.2 Question 2 And Its Answers
 
-Provide your answer and corresponding images here.
+Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
 
-3 – Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
+#### 5.2.1 No vehicle movements on weekends before midday?
 
-Provide your answer and corresponding images here.
+#### 5.2.2 Large Distance Gap Between Consecutive GPS Records?
 
-4 –– Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
+#### 5.2.3 Weird Driving by Elsa Orilla?
 
-Provide your answer and corresponding images here.
+#### 5.2.4 Difference in locations between cc and gps data (Kronos Mart and others)?
 
-5 –– Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why    Please limit your response to 10 images and 500 words.
+#### 5.2.5 Difference in cc and gps logs for President?
 
-Provide your answer and corresponding images here.
+#### 5.2.6 Axel Calzas does not go to work?
 
-6 –– If you solved this mini-challenge in 2014, how did you approach it differently this year?
+#### 5.2.99 Provide your answer and corresponding images here.
 
-Provide your answer here.
+### 5.3 Question 3 And Its Answers
+
+Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
+
+#### 5.3.1 Provide your answer and corresponding images here.
+
+### 5.4 Question 4 And Its Answers
+
+Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
+
+#### 5.4.1 8 Elsa Orilla and 13 Brand Tempesta Are Seeing Each Other
+
+#### 5.4.2 21 Hennie Osvaldo Has Two Homes
+
+#### 5.4.99 Provide your answer and corresponding images here.
+
+### 5.5 Question 5 And Its Answers
+
+Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why. Please limit your response to 10 images and 500 words.
+
+Suspicious activities can be in the following form: 
+1) Explore presence of two or more individuals at the same location at the same hour for extended periods
+2) Individuals Frequenting Unusual Places At Abnormal Hours
+
+#### 5.5.1 Presence of Anonymous Locations
+
+#### 5.5.2 Suspicious Monitoring of the Key Officials' Homes (by Bodrogi, Vann, Osvaldo and Mies)
+
+#### 5.5.3 Suspicious Gas Station Activities
+
+#### 5.5.4 Suspicious Activity By Alcazar
+
+#### 5.5.5 Party on Jan 10 evening
+
+#### 5.5.6 Kronos Mart Midnight
+
+#### 5.5.7 Visiting Kronos Capitol
+
+#### 5.5.8 Bertrand Ovan driving a circle
+
+#### 5.5.9 President only started appearing late in the period
+
+#### 5.5.10 Maybe calculate speed and distance
+
+#### 5.5.99 Provide your answer and corresponding images here.
+
+### 5.6 Question 6 And Its Answers
+
+If you solved this mini-challenge in 2014, how did you approach it differently this year?
+
+#### 5.6.1 Question Not Applicable
+We did not attempt this mini-challenge in 2014.
 
 
 
