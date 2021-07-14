@@ -1,11 +1,11 @@
 ---
-title: "Assignment: VAST Challenge 2021 (Mini-Challenge 2)"
+title: "ISSS608 Assignment: VAST Challenge 2021 (Mini-Challenge 2)"
 description: |
-  Investigating the Mini-Challenge 2 of VAST Challenge 2021 as part of the Assignment
+  Investigating the Mini-Challenge 2 of VAST Challenge 2021
 author:
   - name: Syed Ahmad Zaki
     url: https://www.google.com/
-date: 07-07-2021
+date: 07-12-2021
 output:
   distill::distill_article:
     self_contained: false
@@ -23,11 +23,9 @@ knitr::opts_chunk$set(fig.retina = 3,
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(ggplot2, 
                tidyverse, 
-               readr, 
-#               jpeg, 
+               readr,
                grid, 
-               plotly, 
-#               gganimate, 
+               plotly,
                writexl, 
                qwraps2, 
                reshape2, 
@@ -67,8 +65,6 @@ As a visual analytics expert assisting law enforcement, your mission is to ident
 
 Use visual analytics to analyze the available data and develop responses to the questions below. In addition, prepare a video that shows how you used visual analytics to solve this challenge. Submission instructions are available here. Entry forms are available for download [here.](https://vast-challenge.github.io/2021/MC2.html)
 
----
-
 ## 2.	Literature Review
 A cursory look at the dataset reveals the following data types:
 
@@ -105,9 +101,23 @@ Not all files have the same fields. While it's easy to merge gps and car data us
 With these dataset in mind, the following considerations would need to be addressed:
 
 ### 2.1 Fuzzy Matching
+There are a few ways to employ fuzzy matching in our dataset. One is to use the native [adist](https://www.rdocumentation.org/packages/utils/versions/3.6.2/topics/adist) function within R, but it takes a long while to process. The other is to use packages specifically designed for fuzzy matching. One such package that is built for speed in matching similar phrases is [stringdist](https://www.rdocumentation.org/packages/stringdist/versions/0.9.6.3). It uses [openMP](https://www.openmp.org/) for parallel computing to speed up its matching of unequal content. The only downside (though it's hardly a downside) is that it requires the columns of comparison to be housed in the same dataframe. [fuzzyjoin](https://www.rdocumentation.org/packages/fuzzyjoin/versions/0.1.6), built on top of [stringdist](https://www.rdocumentation.org/packages/stringdist/versions/0.9.6.3), allows comparison of columns housed in different dataset, and its output include a merging of both datasets.
 
-ABC
-Explain levenshtein distance here
+Unfortunately, deciding on the fuzzy logic package is the easy part. The harder part is to decide on the appropriate fuzzy join logic. Here's a list of [distance metrics](https://cran.r-project.org/web/packages/stringdist/stringdist.pdf) currently supported by stringdist:
+
+| Method Name | Description                                                        |
+| :---        | :----                                                              |
+| osa         | Optimal string aligment, (restricted Damerau-Levenshtein distance) |
+| lv          | Levenshtein distance (as in R’s native adist).                     |
+| dl          | Full Damerau-Levenshtein distance.                                 |
+| hamming     | Hamming distance (a and b must have same nr of characters).        |
+| lcs         | Longest common substring distance                                  |
+| qgram       | q-gram distance                                                    |
+| cosine      | cosine distance between q-gram profiles                            |
+| jaccard     | Jaccard distance between q-gram profiles                           |
+| jw          | Jaro, or Jaro-Winkler distance                                     |
+
+Out of the above methods, osa, lv and dl seems most apt, since we're dealing with phrases with differing lengths and are more concerned with slight edits, realignment, addition and subtraction of letters within these phrases. We'll rely on the osa method since it's a balance between finding the right edits and speed.
 
 ### 2.2 Map Visualisations of GPS Data
 
@@ -117,11 +127,9 @@ ABC
 
 ABC
 Calendar Heatmap (GPS Points per day) http://visualdata.wustl.edu/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/University%20of%20Buenos%20Aires%20-%20Tralice/
-Parallel Coordinates Graph (Location, Date, Timestamp, Price, Name)
+Parallel Coordinates Graph (Location, Date, Timestamp, Price, Name) https://rpubs.com/tskam/PCP
 Gantt Chart
 Explore Hippokampos RadViz Clock Average Location https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/Central%20South%20University/
-
----
 
 ## 3.	Data Understanding
 We start by loading all the necessary datasets provided in the VAST Challenge 2021 Mini-Challenge 2.
@@ -131,150 +139,111 @@ We start by loading all the necessary datasets provided in the VAST Challenge 20
 # Loading all datasets and image
 cc <- readr::read_csv("data/cc_data.csv") # Add credit card data
 loyalty <- readr::read_csv("data/loyalty_data.csv") # Add loyalty data
-# mc2 <- jpeg::readJPEG("img/MC2-tourist.jpg", native = TRUE) # Add jpeg map file
 mc2 <- raster("data/MC2-tourist_modified.tif") # Add tif file as a raster layer
 gps <- readr::read_csv("data/gps.csv") # Add gps data
 car <- readr::read_csv("data/car-assignments.csv") # Add car assignments
 Abila_st <- st_read(dsn = "data", layer = "Abila")
+Kronos_sf <- st_as_sf(st_read(dsn = "data", layer = "Kronos_Island"))
 
 ```
-
-### 3.1	Understanding the data
 As always, we review each dataset in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.
 
-We will begin by reviewing all four csv data first. We immediately noticed a few discrepancies:  
+While reviewing the four csv data, we immediately noticed a few discrepancies:  
 1. Date format within the timestamp were in a MM-DD-YYYY H:M format  
 2. Katerina's Cafe contains unique characters, which may cause downstream problems during our analysis  
-3. ID and Last4CCNum are treated as regular double numbers, instead of a character type.
-4. ABC
+3. ID and Last4CCNum are treated as regular double numbers, instead of a character type    
+4. ABC   
 
 ```{r csv-data-cleaning}
 
 #--------------- Cleaning CC data ---------------
 
-#cc$timestamp <- as.POSIXct(cc$timestamp, format = "%m/%d/%Y  %H:%M", tz = "GMT") #Readjust CC timestamp
-#cc$timestamp <- as.character(cc$timestamp)
 cc$timestamp <- date_time_parse(cc$timestamp,
                 zone = "UTC",
-                format = "%m/%d/%Y  %H:%M") #Readjust CC timestamp
-cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
-cc$last4ccnum <- as_factor(cc$last4ccnum)
-cc$hour <- hour(cc$timestamp)
-cc$period <- case_when(
+                format = "%m/%d/%Y  %H:%M") # Readjust CC timestamp
+cc[grep("Katerina", cc$location),2] <- "Katerina's Cafe" # Replace unique characters in Katerina's Cafe
+cc$last4ccnum <- as_factor(cc$last4ccnum) # Change the column format to nominal format
+cc$hour <- as.numeric(format(cc$timestamp,"%H")) # Create a separate column just for hours in the cc data
+cc$period <- case_when( # Segment hour into 5 separate periods
   cc$hour >= 21 ~ "Late Evening 9pm to 11.59pm",
   cc$hour >= 18 ~ "Evening 6pm to 8.59pm",
   cc$hour >= 12 ~ "Afternoon 12noon to 5.59pm",
   cc$hour >= 6 ~ "Morning 6am to 11.59am",
   TRUE ~ "Late Night 12mn to 5.59am"
 )
-cc$dayofmonth <- day(cc$timestamp)
-cc$weekday <- wday(cc$timestamp, label = TRUE)
-cc <- tibble::rowid_to_column(cc, "ID") #Create a numeric id column
-cc$date <- as.Date(cc$timestamp) #Create a separate column just for dates in the cc data
-cc$hour <- as.numeric(format(cc$timestamp,"%H")) #Create a separate column just for hours in the cc data
-cc$concat <- paste(cc$date,cc$location,cc$price) #Create a separate column of unique values using concatenated values in the cc data
-cc$concat2 <- paste(cc$date,cc$location,cc$hour) #Create a second separate column of unique values using concatenated values in the cc data
-cc$concat_cc_spots <- paste(cc$date,cc$location,cc$hour) #Create a second separate column of unique values using concatenated values in the cc data
+cc$dayofmonth <- day(cc$timestamp) # Extract day of month from timestamp in a new column
+cc$weekday <- wday(cc$timestamp, label = TRUE) # Extract day of week from timestamp in a new column
+cc <- tibble::rowid_to_column(cc, "ID") # Create a numeric id column
+cc$date <- as.Date(cc$timestamp) # Create a separate column just for dates in the cc data
+cc$concat_cc_loyalty <- paste(cc$date,cc$location,cc$price) # Create a separate column of unique values using concatenated values in the cc data
+cc$concat_cc_spots <- paste(cc$date,cc$location,cc$hour) # Create a second separate column of unique values using concatenated values in the cc data
 
 #--------------- Cleaning Loyalty data ---------------
 
-#loyalty$timestamp <- as.POSIXct(loyalty$timestamp, format = "%m/%d/%Y", tz = "GMT") #Readjust Loyalty timestamp
 loyalty$timestamp <- date_time_parse(loyalty$timestamp,
                 zone = "UTC",
-                format = "%m/%d/%Y") #Readjust CC timestamp
-loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe" #Replace unique characters in Katerina's Cafe
-loyalty$dayofmonth <- day(loyalty$timestamp)
-loyalty$weekday <- wday(loyalty$timestamp, label = TRUE)
-loyalty$concat <- paste(loyalty$timestamp,loyalty$location,loyalty$price) #Create a separate column of unique values using concatenated values in the loyalty data
-loyalty <- tibble::rowid_to_column(loyalty, "ID") #Create a numeric id column
+                format = "%m/%d/%Y") # Readjust loyalty timestamp
+loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe" # Replace unique characters in Katerina's Cafe
+loyalty$dayofmonth <- day(loyalty$timestamp) # Extract day of month from timestamp in a new column
+loyalty$weekday <- wday(loyalty$timestamp, label = TRUE) # Extract day of week from timestamp in a new column
+loyalty$concat_loyalty_cc <- paste(loyalty$timestamp,loyalty$location,loyalty$price) # Create a separate column of unique values using concatenated values in the loyalty data
+loyalty <- tibble::rowid_to_column(loyalty, "ID") # Create a numeric id column
 
 #--------------- Cleaning Car Assignment data ---------------
 
-car$CarID <- as_factor(car$CarID)
-car$FullName <- paste(car$FirstName,car$LastName, sep = " ")
+car$CarID <- as_factor(car$CarID) # Change the column format to nominal format
+car$FullName <- paste(car$FirstName,car$LastName, sep = " ") # Create new column with combined first and last name
 
 #--------------- Cleaning GPS data ---------------
 
-gps$id <- as_factor(gps$id)
+gps$id <- as_factor(gps$id) # Change the column format to nominal format
 gps$Timestamp <- date_time_parse(gps$Timestamp,
                 zone = "UTC",
-                format = "%m/%d/%Y %H:%M:%S")
-gps$date <- as_date(gps$Timestamp)
-gps$hour <- hour(gps$Timestamp)
-gps$period <- case_when(
+                format = "%m/%d/%Y %H:%M:%S") # Readjust loyalty timestamp
+gps$date <- as_date(gps$Timestamp) # Create a separate column just for dates in the gps data
+gps$hour <- hour(gps$Timestamp) # Create a separate column just for hours in the gps data
+gps$period <- case_when( # Segment hour into 5 separate periods
   gps$hour >= 21 ~ "Late Evening 9pm to 11.59pm",
   gps$hour >= 18 ~ "Evening 6pm to 8.59pm",
   gps$hour >= 12 ~ "Afternoon 12noon to 5.59pm",
   gps$hour >= 6 ~ "Morning 6am to 11.59am",
   TRUE ~ "Late Night 12mn to 5.59am"
 )
-gps$dayofmonth <- day(gps$Timestamp)
-gps$weekday <- wday(gps$Timestamp, label = TRUE)
+gps$dayofmonth <- day(gps$Timestamp) # Extract day of month from timestamp in a new column
+gps$day <- as.factor(get_day(gps$Timestamp))
+gps$weekday <- wday(gps$Timestamp, label = TRUE) # Extract day of week from timestamp in a new column
 
 ```
-
----
 
 ## 4.	Data Preparation
-### 4.1	Combining Both Credit Card and Loyalty Data
-We will now attempt to find matching rows between the cc and loyalty data.  
+### 4.1	Combining Both Credit Card and Loyalty Data Using Fuzzy Join (OSA)
+We will now attempt to find matching rows between the cc and loyalty data. 
 
-#### 4.1.1 Fuzzy String Matching Using Levenshtein Distance  
-We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
+```{r fuzzyjoin-innerjoin-stringdist-cc-loyalty}
 
-```{r levenshtein-distance-matching-cc-loyalty, eval = FALSE}
+cc_loyalty <- cc %>% # Create a new dataframe that shows matches with a max distance difference of 1
+  stringdist_inner_join(loyalty, 
+                        by = c("concat_cc_loyalty" = "concat_loyalty_cc"),
+                        method = "osa",
+                        max_dist = 1,
+                        distance_col = "distance")
 
-dist.concat <- adist(cc$concat,loyalty$concat, partial = TRUE, ignore.case = TRUE) #Creates a matrix with the Standard Levenshtein distance between both newly created concat columns
-min.concat <- apply(dist.concat, 1, min) #Extract pairs with minimum distance
+cc_loyalty_1 <- cc_loyalty %>% # Isolate best matching cc and loyalty with more than 2 counts
+    group_by(last4ccnum,loyaltynum) %>%
+  count() %>%
+  filter(n>2) %>%
+  ungroup()
 
-match.s1.s2 <- NULL
-for (i in 1:nrow(dist.concat))
-{
-  s2.i <- match(min.concat[i], dist.concat[i,])
-  s1.i <- i
-  match.s1.s2 <- rbind(data.frame(loyalty.i=s2.i,
-                                    cc.i=s1.i,
-                                    loyalty_concat=loyalty[s2.i,]$concat,
-                                    cc_concat=cc[s1.i,]$concat,
-                                    adist=min.concat[i]),match.s1.s2)
-  }
-    
-cc_loyalty <- match.s1.s2 %>%
-  left_join(dplyr::select(cc, last4ccnum, ID), by = c("cc.i" = "ID")) %>% #Add in CC num column
-  left_join(dplyr::select(loyalty, loyaltynum, ID), by = c("loyalty.i" = "ID")) #Add in loyalty card num column
+cc_loyalty_duplicate_cc <- cc_loyalty_1 %>% # Extract duplicates in cc data
+  filter(cc_loyalty_1$last4ccnum == cc_loyalty_1$last4ccnum[duplicated(cc_loyalty_1$last4ccnum)])
+
+cc_loyalty_duplicate_loyalty <- subset(cc_loyalty_1,loyaltynum == "L6267" | loyaltynum == "L3288") # Extract duplicates in loyalty data
 
 ```
-
-#### 4.1.2 Extracting Best Matching Pairs     
-Let's now extract the matching credit card-loyalty pairs according to 80% matching of their comparative distance.
-
-```{r extract-cc-loyalty-pairs, eval = FALSE}
-
-cc_loyalty_unique <- dcast(cc_loyalty, last4ccnum + loyaltynum ~ adist) #Long to wide by transposing adist
-cc_loyalty_unique$Total <- rowSums(cc_loyalty_unique[,c("0","1","2","3","4","5","11")]) #Sum all rows
-cc_loyalty_unique$Sum01 <- rowSums(cc_loyalty_unique[,c("0","1")]) #Sum only column 1 and 2
-cc_loyalty_unique$MatchPctTotal <- percent(cc_loyalty_unique[,3] / cc_loyalty_unique$Total) #Calc % of perfect (0) matches against Total
-cc_loyalty_unique$MatchPct01 <- percent(cc_loyalty_unique$Sum01 / cc_loyalty_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
-
-cc_loyalty_unique_80 <- cc_loyalty_unique %>% 
-  filter (MatchPct01 >= "80.00%")
-n_distinct(cc_loyalty_unique_80$last4ccnum)
-n_distinct(cc_loyalty_unique_80$loyaltynum)
-
-write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
-
-```
-
-
-
-
-
-
-
 
 ### 4.2	Combining Both GPS and Car Assignment Data
 #### 4.2.1 Initial Step
-First, we will merge the GPS data with the car assignments.
+First, we will merge the GPS data with the car assignments. Next, we will isolate GPS points, that have been stationary for at least 10 mins.
 
 ```{r GPS-data-manipulation}
 
@@ -288,26 +257,17 @@ gps_name <- gps_name %>% # Add running number in the first column
   dplyr::select(No, everything()) 
 gps_name <- gps_name %>% # Create additional column indicating time taken from previous timestamp for same ID
     mutate(Delta = Timestamp - lag(Timestamp, default = first(Timestamp)))
-
-gps_name$Delta <- as.numeric(gps_name$Delta)
+gps_name$Delta <- as.numeric(gps_name$Delta) # Convert Delta column to numeric format
 gps_name$Delta_Hours <- round(gps_name$Delta / 60 / 60, 1) # Create column to convert Delta seconds into hours with one decimal place
-
-```
-
-#### 4.2.2 Isolate Stationary GPS Points
-Next, we will isolate GPS points, that have been stationary for at least 10 mins.
-
-```{r GPS-stationary}
 
 spots <- gps_name %>% # Filtering out gps coordinates where stationary for more than 10 mins
   filter(Delta > 600)
 spots$No <- rep(1:2965, times = 1) # Redo running number in the first column
 
-
 ```
 
-#### 4.2.3 Identifying Stationary GPS Points
-Next, using the map and other data sources, we identify the locations of each of these stationary GPS points.
+#### 4.2.2 Identifying Stationary GPS Points
+Next, using the map and other data sources, we identify the locations of each of these stationary GPS points. Through a visual inspection of the map, credit card and loyalty data, we found 66 unique locations.
 
 ```{r identifying-stationary-GPS-points}
 
@@ -448,15 +408,14 @@ spots <- spots %>% mutate(
       between(long, 24.86869468, 24.86985682)  ~ "Anonymous Site 8", # 10 features 
     ))
 
-spots$concat_cc_spots <- paste(spots$date,spots$Location,spots$hour) #Create a separate column of unique values using concatenated values in the distilled GPS data
-
+spots$concat_spots_cc <- paste(spots$date,spots$Location,spots$hour) # Create a separate column of unique values using concatenated values in the distilled GPS data
 spots_median <- spots %>% # Extract median latlong of locations
   group_by(Location) %>%
     summarise(lat.median = median(lat), long.median = median(long)) %>%
   filter(!is.na(Location)) %>% # Exclude remaining few unmatched locations
   ungroup()
 
-spots_median <- spots_median %>%
+spots_median <- spots_median %>% # Add additional column to classify locations into major buckets
   mutate(Location.Type = case_when(
     Location %in% c("Anonymous Site 1",
                     "Anonymous Site 2",
@@ -526,82 +485,45 @@ spots_median <- spots_median %>%
                     "U-Pump") ~ "Transport",
     ))
 
-sum(is.na(spots$Location))
-length(grep("Frydos Autosupply n' More", spots$Location))
-
-write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_latest.csv")
-
-write_csv(spots_median,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_median.csv")
-
+#sum(is.na(spots$Location))
+#length(grep("Frydos Autosupply n' More", spots$Location))
+#write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_latest.csv")
+#write_csv(spots_median,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_median.csv")
 #write_csv(cc,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_date.csv")
 
 ```
 
+### 4.3	Combining Both Credit Card and Spots Data Using Fuzzy Join (OSA)
+We will now attempt to find matching rows between the cc and spot data. 
 
+ABC Need to remove five duplicates at 
 
-```{r levenshtein-distance-matching-cc-GPS, eval = FALSE}
+```{r fuzzyjoin-innerjoin-stringdist-cc-spots}
 
-dist.concat2 <- adist(cc$concat2,spots$concat, partial = TRUE, ignore.case = TRUE) #Create a matrix with the Standard Levenshtein distance between both newly created concat columns
-min.concat2 <- apply(dist.concat2, 1, min) #Extract pairs with minimum distance
+cc_spots <- cc %>% # Create a new dataframe that shows matches with a max distance difference of 1
+  stringdist_inner_join(spots, 
+                        by = c("concat_cc_spots" = "concat_spots_cc"),
+                        method = "osa",
+                        max_dist = 1,
+                        distance_col = "distance")
 
-match.s3.s4 <- NULL
-for (j in 1:nrow(dist.concat2))
-{
-  s4.j <- match(min.concat2[j], dist.concat2[j,])
-  s3.j <- j
-  match.s3.s4 <- rbind(data.frame(spots.j=s4.j,
-                                    cc.j=s3.j,
-                                    spots_concat=spots[s4.j,]$concat,
-                                    cc_concat2=cc[s3.j,]$concat2,
-                                    adist=min.concat2[j]),match.s3.s4)
-  }
-    
-cc_spots <- match.s3.s4 %>%
-  left_join(dplyr::select(cc, last4ccnum, ID), by = c("cc.j" = "ID")) %>% #Add in CC num column
-  left_join(dplyr::select(spots, RoleNName, No), by = c("spots.j" = "No")) #Add in Spots num column
+cc_spots_1 <- cc_spots %>% # Isolate best matching cc and loyalty with more than 2 counts
+  filter(!is.na(FullName)) %>% # Remove unknown drivers
+  group_by(RoleNName,last4ccnum) %>%
+  count() %>%
+  arrange(RoleNName,-n) %>% # Arrange the highest to lowest count in each group
+  ungroup()
 
-```
+cc_spots_1 <- cc_spots_1[!duplicated(cc_spots_1$RoleNName),] # Isolating 1 cc to 1 driver
 
+cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five duplicates
 
+#write_csv(cc_spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_spots.csv")
 
-```{r extract-cc-spots-pairs, eval = FALSE}
+#cc_loyalty_duplicate_cc <- cc_loyalty_1 %>% # Extract duplicates in cc data
+#  filter(cc_loyalty_1$last4ccnum == cc_loyalty_1$last4ccnum[duplicated(cc_loyalty_1$last4ccnum)])
 
-cc_spots_unique <- dcast(cc_spots, last4ccnum + RoleNName ~ adist) #Long to wide by transposing adist
-cc_spots_unique$Total <- rowSums(cc_spots_unique[,c("0","1","2","3","7","8","9","10","11","12","13","14","15","16","17","18","19","21")]) #Sum all rows
-cc_spots_unique$Sum01 <- rowSums(cc_spots_unique[,c("0","1")]) #Sum only column 1 and 2
-cc_spots_unique$MatchPctTotal <- percent(cc_spots_unique[,3] / cc_spots_unique$Total) #Calc % of perfect (0) matches against Total
-cc_spots_unique$MatchPct01 <- percent(cc_spots_unique$Sum01 / cc_spots_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
-
-cc_spots_unique_80 <- cc_spots_unique %>% 
-  filter (MatchPct01 >= "80.00%")
-n_distinct(cc_spots_unique_80$last4ccnum)
-n_distinct(cc_spots_unique_80$RoleNName)
-
-write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
-
-```
-
-Using fuzzyjoin (use Dcast median values)
-
-```{r fuzzyjoin}
-
-spots_cc <- stringdist_join(cc,spots,
-                       by = "concat_cc_spots",
-                       mode = "left",
-                       method = "jw",
-                       ignore_case = TRUE,
-                       max_dist = 0.2,
-                       distance_col = "dist")
-
-spots_cc_summary <- spots_cc %>%
-  group_by(concat_cc_spots.x) %>%
-  slice_min (order_by = dist, n = 1) %>%
-  arrange (desc(dist)) %>%
-  filter(dist < 0.1)
-
-write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_cc.csv")
-
-write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_cc_summary.csv")
+#cc_loyalty_duplicate_loyalty <- subset(cc_loyalty_1,loyaltynum == "L6267" | loyaltynum == "L3288") # Extract duplicates in loyalty data
 
 ```
 
@@ -609,65 +531,92 @@ write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 
 
 
 
+Creating custom map of Abila with the use of tmap
 
+```{r tmap-visualisation, echo = T, message = FALSE}
 
-```{r GPS-lines}
+Abila_st_union <- st_union(Abila_st) # Dissolve Abila road network
+Abila_st_proj <- st_transform(Abila_st_union, crs = 3857)
+Abila_st_buffer <- st_buffer(Abila_st_proj, dist = 25, nQuadSegs = 5, ) # Create a buffer around the dissolved Abila road network
 
-gps_sf <- st_as_sf(gps, coords = c("long", "lat"), # Changing into a shapefile
-    crs = 4326, agr = "constant")
-spots_sf <- st_as_sf(spots, coords = c("long", "lat"), # Changing into a shapefile
-    crs = 4326, agr = "constant")
+gps_sf <- st_as_sf(gps, coords = c("long", "lat"), crs = 4326) # Changing into a shapefile
+spots_median_sf <- st_as_sf(spots_median, coords = c("long.median", "lat.median"), crs = 4326) # Changing into a shapefile
 gps_path <- gps_sf %>% # Creating a movement path
   group_by(id) %>%
   summarize(m = mean(Timestamp), 
             do_union=FALSE) %>%
-  st_cast("LINESTRING")
+  st_cast("LINESTRING")  
 
+# Create blue polygon as background to mimic sea
+long.sea <- c(24.91075,24.91075,24.8232,24.8232,24.91075)
+lat.sea <- c(36.09543,36.0445,36.0445,36.09543,36.09543)
+sea <-data.frame(long.sea, lat.sea)
+rm(long.sea)
+rm(lat.sea)
+sea_sf <- st_as_sf(sea, coords = c("long.sea", "lat.sea"))
+st_crs(sea_sf) <- 4326
+sea_poly<- st_sf(
+  st_cast(
+    st_combine(sea_sf$geometry),"POLYGON"
+  )
+)
 
-#spots_l <- spots[,4:5] # Extract only lat long
-#spots_ll <- spots_l %>% slice(rep(1:n(), each = 3648))
-#spots_ll$No <- rep(1:3648, times = 3648)
-#spots_l$Noo <- rep(1:3648, times = 1)
-#spots_ll <- left_join(spots_ll,spots_l, by = c("No" = "Noo"))
-#spots_ll$Diff <- sqrt((spots_ll$lat.x-spots_ll$lat.y)^2+(spots_ll$long.x-spots_ll$long.y)^2)
+# Clip a smaller Kronos island around Abila
+Kronos_sf_small <- st_crop(Kronos_sf, c(xmin = 24.8232, xmax = 24.91075, ymin = 36.0445, ymax = 36.09543))
 
-#n_perc(spots_ll$Diff < 0.05)
+tmap_mode("view")
+#tm_shape(mc2) +
+#  tm_rgb(mc2, r = 1,g = 2,b = 3,
+#       alpha = NA,
+#       saturation = 1,
+#       interpolate = TRUE,
+#       max.value = 255) +
+custom_tmap <- tm_shape(sea_poly) +
+  tm_polygons(col="lightblue") +
+tm_shape(Kronos_sf_small) +
+  tm_polygons(col = "beige") +
+tm_shape(Abila_st_buffer) +
+  tm_polygons(col = "white") +
+tm_shape(gps_path %>% filter(id==2)) +
+  tm_lines() +
+tm_shape(spots_median_sf) +
+  tm_dots(col = "Location.Type",
+          id = "Location", # Bold in group
+          popup.vars = "Location Type:" =="Location.Type",
+          size = 0.2)
 
-#write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Desktop\\spots.csv")
-
-# Mapping map and gps together specifically for CarID #1
-#mapping_spots <- ggplot(spots, aes(long, lat)) +
-#  annotation_custom(rasterGrob(mc2,
-#    width = unit(1, "npc"),
-#    height = unit(1,"npc")),
-#  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
-#  geom_point(size = 0.1) + 
-#  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
-#  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
-#                     panel.grid.major = element_blank(), 
-#                     panel.grid.minor = element_blank(), 
-#                     axis.line = element_line(colour = "black"))  
-
-#mapping_spots
+custom_tmap
+#class(sea_poly)
+#st_cast(sea_sf,"POLYGON")
+#class(sea_sf)
+#sea_sf <- st_multilinestring(sea_sf)
+#st_cast(sea_sf, "POLYGON")
+#sea <- matrix(c(24.90976,36.09543,
+#                24.90976,36.04499,
+#                24.82419,36.04499,
+#                24.82419,36.09543,
+#                24.90976,36.09543), ncol=2, byrow = TRUE)
+#sea_poly <- st_polygon(list(sea))
+#sea_poly <- st_set_crs(sea_poly, 4326)
+#st_crs(sea_poly)
+#class(sea_poly)
+#gps_path_selected <- gps_path %>%
+#  filter(id==3)
+#gps_path_selected <- gps_path %>%
+#  filter(id==1)
+#st_crs(Abila_st_union)
+#st_crs(Abila_st_buffer)
+#print(Abila_st_buffer)
+#class(Abila_st)
+#Abila_st_proj <- st_transform(Abila_st, 32632) # UTM Zone 32N
+#Abila_st_buffer <- st_buffer(Abila_st_proj, dist = 100)#write_sf(Abila_st_union,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\Abila_st_union.shp")
+#write_sf(Abila_st_buffer,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\Abila_st_buffer.shp")
+#write_sf(sea_poly,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\sea_poly.shp")
 
 ```
 
 
 
-Through a visual inspection of the map, credit card and loyalty data, we found 41 unique locations. With this, we then used the spots data above to find the coordinates nearest to these locations. We recorded the coordinates of each location in an Excel file, and would now bring it into R.
-
-```{r spot-locations}
-
-spot_list <- read_excel("data/spots and list.xlsx", sheet = "LIST") #Import Excel file
-
-  
-
-
-```
-
-
-
----
 
 ## 5.	Data Exploration Analysis
 
@@ -841,33 +790,19 @@ Testing the use of a static image as background and showcasing the gps data on i
 
 ```
 
-Testing the use of tmap
-
-```{r tmap-visualisation}
-
-gps_path_selected <- gps_path %>%
-  filter(id==3)
-tmap_mode("view")
-tm_shape(mc2) +
-  tm_rgb(mc2, r = 1,g = 2,b = 3,
-       alpha = NA,
-       saturation = 1,
-       interpolate = TRUE,
-       max.value = 255) +
-  tm_shape(gps_path_selected) +
-  tm_lines()
-
-```
 
 
 
-```{r include=FALSE}
+
+```{r include=FALSE, eval=FALSE}
 m <- tm_shape(mc2) +
   tm_rgb(mc2, r = 1,g = 2,b = 3,
        alpha = NA,
        saturation = 1,
        interpolate = TRUE,
-       max.value = 255) +
+       max.value = 255) 
+
++
   tm_shape(gps_path) +
   tm_lines() +
   tm_facets(along = "id")
@@ -878,6 +813,174 @@ tmap_animation(m,
 
 
 
+Past work:
+
+We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
+
+```{r levenshtein-distance-matching-cc-loyalty, eval = FALSE}
+
+dist.concat <- adist(cc$concat,loyalty$concat, partial = TRUE, ignore.case = TRUE) #Creates a matrix with the Standard Levenshtein distance between both newly created concat columns
+min.concat <- apply(dist.concat, 1, min) #Extract pairs with minimum distance
+
+match.s1.s2 <- NULL
+for (i in 1:nrow(dist.concat))
+{
+  s2.i <- match(min.concat[i], dist.concat[i,])
+  s1.i <- i
+  match.s1.s2 <- rbind(data.frame(loyalty.i=s2.i,
+                                    cc.i=s1.i,
+                                    loyalty_concat=loyalty[s2.i,]$concat,
+                                    cc_concat=cc[s1.i,]$concat,
+                                    adist=min.concat[i]),match.s1.s2)
+  }
+    
+cc_loyalty <- match.s1.s2 %>%
+  left_join(dplyr::select(cc, last4ccnum, ID), by = c("cc.i" = "ID")) %>% #Add in CC num column
+  left_join(dplyr::select(loyalty, loyaltynum, ID), by = c("loyalty.i" = "ID")) #Add in loyalty card num column
+
+```
+
+#### 4.1.2 Extracting Best Matching Pairs     
+Let's now extract the matching credit card-loyalty pairs according to 80% matching of their comparative distance.
+
+```{r extract-cc-loyalty-pairs, eval = FALSE}
+
+cc_loyalty_unique <- dcast(cc_loyalty, last4ccnum + loyaltynum ~ adist) #Long to wide by transposing adist
+cc_loyalty_unique$Total <- rowSums(cc_loyalty_unique[,c("0","1","2","3","4","5","11")]) #Sum all rows
+cc_loyalty_unique$Sum01 <- rowSums(cc_loyalty_unique[,c("0","1")]) #Sum only column 1 and 2
+cc_loyalty_unique$MatchPctTotal <- percent(cc_loyalty_unique[,3] / cc_loyalty_unique$Total) #Calc % of perfect (0) matches against Total
+cc_loyalty_unique$MatchPct01 <- percent(cc_loyalty_unique$Sum01 / cc_loyalty_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
+
+cc_loyalty_unique_80 <- cc_loyalty_unique %>% 
+  filter (MatchPct01 >= "80.00%")
+n_distinct(cc_loyalty_unique_80$last4ccnum)
+n_distinct(cc_loyalty_unique_80$loyaltynum)
+
+write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
+
+```
 
 
 
+```{r levenshtein-distance-matching-cc-GPS, eval = FALSE}
+
+dist.concat2 <- adist(cc$concat2,spots$concat, partial = TRUE, ignore.case = TRUE) #Create a matrix with the Standard Levenshtein distance between both newly created concat columns
+min.concat2 <- apply(dist.concat2, 1, min) #Extract pairs with minimum distance
+
+match.s3.s4 <- NULL
+for (j in 1:nrow(dist.concat2))
+{
+  s4.j <- match(min.concat2[j], dist.concat2[j,])
+  s3.j <- j
+  match.s3.s4 <- rbind(data.frame(spots.j=s4.j,
+                                    cc.j=s3.j,
+                                    spots_concat=spots[s4.j,]$concat,
+                                    cc_concat2=cc[s3.j,]$concat2,
+                                    adist=min.concat2[j]),match.s3.s4)
+  }
+    
+cc_spots <- match.s3.s4 %>%
+  left_join(dplyr::select(cc, last4ccnum, ID), by = c("cc.j" = "ID")) %>% #Add in CC num column
+  left_join(dplyr::select(spots, RoleNName, No), by = c("spots.j" = "No")) #Add in Spots num column
+
+```
+
+
+
+```{r extract-cc-spots-pairs, eval = FALSE}
+
+cc_spots_unique <- dcast(cc_spots, last4ccnum + RoleNName ~ adist) #Long to wide by transposing adist
+cc_spots_unique$Total <- rowSums(cc_spots_unique[,c("0","1","2","3","7","8","9","10","11","12","13","14","15","16","17","18","19","21")]) #Sum all rows
+cc_spots_unique$Sum01 <- rowSums(cc_spots_unique[,c("0","1")]) #Sum only column 1 and 2
+cc_spots_unique$MatchPctTotal <- percent(cc_spots_unique[,3] / cc_spots_unique$Total) #Calc % of perfect (0) matches against Total
+cc_spots_unique$MatchPct01 <- percent(cc_spots_unique$Sum01 / cc_spots_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
+
+cc_spots_unique_80 <- cc_spots_unique %>% 
+  filter (MatchPct01 >= "80.00%")
+n_distinct(cc_spots_unique_80$last4ccnum)
+n_distinct(cc_spots_unique_80$RoleNName)
+
+write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
+
+```
+
+Using fuzzyjoin (use Dcast median values)
+
+```{r fuzzyjoin, eval=FALSE}
+
+spots_cc <- stringdist_join(cc,spots,
+                       by = "concat_cc_spots",
+                       mode = "left",
+                       method = "jw",
+                       ignore_case = TRUE,
+                       max_dist = 0.2,
+                       distance_col = "dist")
+
+spots_cc_summary <- spots_cc %>%
+  group_by(concat_cc_spots.x) %>%
+  slice_min (order_by = dist, n = 1) %>%
+  arrange (desc(dist)) %>%
+  filter(dist < 0.1)
+
+write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_cc.csv")
+
+write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_cc_summary.csv")
+
+```
+
+
+With this, we then used the spots data above to find the coordinates nearest to these locations. We recorded the coordinates of each location in an Excel file, and would now bring it into R.
+
+```{r spot-locations, eval = FALSE}
+
+spot_list <- read_excel("data/spots and list.xlsx", sheet = "LIST") #Import Excel file
+
+  
+
+
+```
+
+Change to GPS lines
+
+```{r GPS-lines, eval = FALSE}
+
+#gps <- readr::read_csv("data/gps.csv") # Add gps data
+#gps$Timestamp <- date_time_parse(gps$Timestamp,
+#                zone = "",
+#                format = "%m/%d/%Y %H:%M:%S")
+
+
+
+  
+#spots_sf <- st_as_sf(spots, coords = c("long", "lat"), # Changing into a shapefile
+#    crs = 4326, agr = "constant")
+
+
+
+#spots_l <- spots[,4:5] # Extract only lat long
+#spots_ll <- spots_l %>% slice(rep(1:n(), each = 3648))
+#spots_ll$No <- rep(1:3648, times = 3648)
+#spots_l$Noo <- rep(1:3648, times = 1)
+#spots_ll <- left_join(spots_ll,spots_l, by = c("No" = "Noo"))
+#spots_ll$Diff <- sqrt((spots_ll$lat.x-spots_ll$lat.y)^2+(spots_ll$long.x-spots_ll$long.y)^2)
+
+#n_perc(spots_ll$Diff < 0.05)
+
+#write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Desktop\\spots.csv")
+
+# Mapping map and gps together specifically for CarID #1
+#mapping_spots <- ggplot(spots, aes(long, lat)) +
+#  annotation_custom(rasterGrob(mc2,
+#    width = unit(1, "npc"),
+#    height = unit(1,"npc")),
+#  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
+#  geom_point(size = 0.1) + 
+#  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
+#  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
+#                     panel.grid.major = element_blank(), 
+#                     panel.grid.minor = element_blank(), 
+#                     axis.line = element_line(colour = "black"))  
+
+#mapping_spots
+
+```
