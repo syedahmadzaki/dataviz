@@ -891,7 +891,34 @@ Suspicious activities can be in the following form:
 1) Explore presence of two or more individuals at the same location at the same hour for extended periods
 2) Individuals Frequenting Unusual Places At Abnormal Hours
 
-#### 5.5.1 Presence of Anonymous Locations
+#### 5.5.1 Presence of Anonymous Locations (shown as black dots on map)
+
+```{r anonymous-locations}
+
+tmap_mode("view")
+
+Q5.5.1 <- tm_shape(mc2) +
+tm_rgb(mc2, r = 1,g = 2,b = 3,
+       alpha = NA,
+       saturation = 1,
+       interpolate = TRUE,
+       max.value = 255) +
+tm_shape(spots_median_sf %>%
+           filter(Location.Type != "Unknown")) +
+  tm_dots(col = "Location.Type",
+          id = "Location", # Bold in group
+          popup.vars = "Location Type:" =="Location.Type",
+          size = 0.2) +
+tm_shape(spots_median_sf %>%
+           filter(Location.Type == "Unknown")) +
+  tm_dots(col = "black",
+          id = "Location", # Bold in group
+          popup.vars = "Location Type:" =="Location.Type",
+          size = 0.2)
+
+Q5.5.1
+
+```
 
 #### 5.5.2 Suspicious Monitoring of the Key Officials' Homes (by Bodrogi, Vann, Osvaldo and Mies)
 
