@@ -172,12 +172,13 @@ cc$period <- case_when( # Segment hour into 5 separate periods
   TRUE ~ "Late Night 12mn to 5.59am"
 )
 cc$dayofmonth <- day(cc$timestamp) # Extract day of month from timestamp in a new column
-cc$dayofmonth <- as.factor(cc$dayofmonth) # Change to factor format
+cc$dayofmonth <- as_factor(cc$dayofmonth) # Change to nominal format
 cc$weekday <- wday(cc$timestamp, label = TRUE) # Extract day of week from timestamp in a new column
 cc <- tibble::rowid_to_column(cc, "ID") # Create a numeric id column
 cc$date <- as.Date(cc$timestamp) # Create a separate column just for dates in the cc data
 cc$concat_cc_loyalty <- paste(cc$date,cc$location,cc$price) # Create a separate column of unique values using concatenated values in the cc data
 cc$concat_cc_spots <- paste(cc$date,cc$location,cc$hour) # Create a second separate column of unique values using concatenated values in the cc data
+cc$ID <- as_factor(cc$ID) # Change the column format to nominal format
 
 #--------------- Cleaning Loyalty data ---------------
 
@@ -186,9 +187,11 @@ loyalty$timestamp <- date_time_parse(loyalty$timestamp,
                 format = "%m/%d/%Y") # Readjust loyalty timestamp
 loyalty[grep("Katerina", loyalty$location),2] <- "Katerina's Cafe" # Replace unique characters in Katerina's Cafe
 loyalty$dayofmonth <- day(loyalty$timestamp) # Extract day of month from timestamp in a new column
+loyalty$dayofmonth <- as_factor(loyalty$dayofmonth) # Change to nominal format
 loyalty$weekday <- wday(loyalty$timestamp, label = TRUE) # Extract day of week from timestamp in a new column
 loyalty$concat_loyalty_cc <- paste(loyalty$timestamp,loyalty$location,loyalty$price) # Create a separate column of unique values using concatenated values in the loyalty data
 loyalty <- tibble::rowid_to_column(loyalty, "ID") # Create a numeric id column
+loyalty$ID <- as_factor(loyalty$ID) # Change the column format to nominal format
 
 #--------------- Cleaning Car Assignment data ---------------
 
@@ -212,7 +215,7 @@ gps$period <- case_when( # Segment hour into 5 separate periods
   TRUE ~ "Late Night 12mn to 5.59am"
 )
 gps$dayofmonth <- day(gps$Timestamp) # Extract day of month from timestamp in a new column
-gps$day <- as.factor(get_day(gps$Timestamp))
+gps$day <- as_factor(get_day(gps$Timestamp))
 gps$weekday <- wday(gps$Timestamp, label = TRUE) # Extract day of week from timestamp in a new column
 
 ```
@@ -636,7 +639,7 @@ Food and beverage places seem to be the more popular locations.
 
 cc_calendar <- cc %>% 
   count(dayofmonth, location)
-cc_calendar$dayofmonth <- as.factor(cc_calendar$dayofmonth)
+cc_calendar$dayofmonth <- as_factor(cc_calendar$dayofmonth)
 
 Q5.1.1 <- ggplot(complete(cc_calendar, dayofmonth, location), aes(x = dayofmonth, y = location)) + 
   geom_tile(aes(fill = n), color = "white", size = 0.1) +
@@ -669,19 +672,51 @@ Q5.1.1 <- ggplot(complete(cc_calendar, dayofmonth, location), aes(x = dayofmonth
 Q5.1.1
 
 ```
-#### 5.1.2 Kronos Mart's Txns Are One Day Apart
+#### 5.1.2 Kronos Mart's Txns Differs By One Day, Within Both The Credit Card And Loyalty Data.
 
-```{r kronos-mart, eval = FALSE}
+```{r kronos-mart}
 
-Q5.1.2 <- data.frame(dayofmonth = c(6:19))
-Q5.1.2$dayofmonth <- as.factor(Q5.1.2$dayofmonth)
-Q5.1.2 <- Q5.1.2 %>%
-  left_join(cc, by = "dayofmonth") %>%
-  filter(cc, location == "Kronos Mart") %>%
+Q5.1.2_cc <- cc %>%
+  filter(location == "Kronos Mart") %>%
+  dplyr::select(dayofmonth, price, location) %>%
   group_by(dayofmonth) %>%
   summarise(cc_data = sum(price))
 
+Q5.1.2_loyalty <- loyalty %>%
+  filter(location == "Kronos Mart") %>%
+  dplyr::select(dayofmonth, price, location) %>%
+  group_by(dayofmonth) %>%
+  summarise(loyalty_data = sum(price))
 
+Q5.1.2_combined <- data.frame(dayofmonth = c(6:19))
+Q5.1.2_combined$dayofmonth <- as_factor(Q5.1.2_combined$dayofmonth)
+Q5.1.2_combined <- Q5.1.2_combined %>%
+  left_join(Q5.1.2_cc, by = "dayofmonth") %>%
+  left_join(Q5.1.2_loyalty, by = "dayofmonth")
+
+Q5.1.2_combined$cc_data[is.na(Q5.1.2_combined$cc_data)] <- 0
+Q5.1.2_combined$loyalty_data[is.na(Q5.1.2_combined$loyalty_data)] <- 0
+
+Q5.1.2_combined <-melt(Q5.1.2_combined, id.vars = "dayofmonth", variable.name = "source")
+
+Q5.1.2 <- ggplot(Q5.1.2_combined, aes(dayofmonth, value, group = source)) +
+  geom_area(aes(colour = source, fill = source),
+            size = 1) +
+  geom_point() +
+  geom_text(data=subset(Q5.1.2_combined, value != 0),
+            aes(label = value,
+            group = source),
+            vjust = -1,
+            size = 3) +
+  facet_grid(source~.) +
+  ylim(0,500) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position = "none")
+
+Q5.1.2
 ```
 
 
@@ -709,7 +744,31 @@ Add the vehicle data to your analysis of the credit and loyalty card data. How d
 
 #### 5.2.2 Large Distance Gap Between Consecutive GPS Records?
 
-#### 5.2.3 Weird Driving by Elsa Orilla?
+#### 5.2.3 Weird Off-Road Driving by Isande Borrasca
+
+```{r weird-driving-elsa}
+
+tmap_mode("view")
+
+Q5.2.3 <- tm_shape(sea_poly) +
+  tm_polygons(col="lightblue") +
+tm_shape(Kronos_sf_small) +
+  tm_polygons(col = "beige") +
+tm_shape(Abila_st_buffer) +
+  tm_polygons(col = "white") +
+tm_shape(gps_path %>% filter(id==28)) + # Extract Isande's path
+  tm_lines(col = "black",
+           lty = 1,
+           id = "RoleNName") +
+tm_shape(spots_median_sf) +
+  tm_dots(col = "Location.Type",
+          id = "Location", # Bold in group
+          popup.vars = "Location Type:" =="Location.Type",
+          size = 0.2)
+
+Q5.2.3
+
+```
 
 #### 5.2.4 Difference in locations between cc and gps data (Kronos Mart and others)?
 
