@@ -358,7 +358,7 @@ spots <- spots %>% mutate(
     between(lat, 36.06582037, 36.06584879) & 
       between(long, 24.85236427, 24.85241027)  ~ "Kalami Kafenion", # 47 features
     between(lat, 36.05442247, 36.05453641) & 
-      between(long, 24.89986596, 24.89998054)  ~ "Katerina’s Café", # 158 features
+      between(long, 24.89986596, 24.89998054)  ~ "Katerina’s Cafe", # 158 features
     between(lat, 36.05292229, 36.05296701) & 
       between(long, 24.84936915, 24.84941679)  ~ "Kronos Capital", # 6 features
     between(lat, 36.06582196, 36.06587998) & 
@@ -727,7 +727,42 @@ Q5.1.2
 
 #### 5.1.4 Show spending outliers
 
-#### 5.1.5 Some CC txns occur at the same time (everyday at noon)
+#### 5.1.5 Some txns at coffee chains occur only at selected hours
+
+```{r coffee-hour}
+
+Q5.1.5_cc <- cc %>%
+  left_join(dplyr::select(spots_median,Location, Location.Type), by = c("location" = "Location")) %>%
+  filter(Location.Type == "Coffee Cafe") %>%
+  dplyr::select(location, hour, price) %>%
+  group_by(location, hour) %>%
+  summarise(coffee_money = sum(price), .groups = "drop") %>%
+  dcast(hour ~ location, value.var = "coffee_money")
+Q5.1.5_cc$hour <- as_factor(Q5.1.5_cc$hour)
+
+Q5.1.5_combined <- data.frame(hour = c(1:24))
+Q5.1.5_combined$hour <- as_factor(Q5.1.5_combined$hour)
+Q5.1.5_combined <- Q5.1.5_combined %>%
+  left_join(Q5.1.5_cc, by = "hour")
+
+Q5.1.5_combined <-melt(Q5.1.5_combined, id.vars = "hour", variable.name = "coffee_place")
+
+Q5.1.5 <- ggplot(Q5.1.5_combined, aes(hour, value, fill = coffee_place)) +
+  geom_bar(stat = "identity") +
+  coord_polar(theta = "x") +
+  ggtitle("Txns of Coffee Chains By Hour") +
+  xlab("")+ylab("") +
+  theme(plot.title = element_text(hjust = 0.5),
+        axis.ticks = element_blank(), 
+        axis.text.y = element_blank(), 
+        panel.background = element_blank(), 
+        panel.grid.major.x = element_line(colour="grey"),
+        axis.text.x = element_text(size = 15), 
+        legend.title=element_blank())
+
+Q5.1.5
+
+```
 
 #### 5.1.6 What type of location is Hippokampos? It seems near to Gastech
 
@@ -854,7 +889,7 @@ Q5.4.1
 
 ```
 
-#### 5.4.2 21 Hennie Osvaldo Has Two Homes
+#### 5.4.2 21 Hennie Osvaldo Has Two Homes, of which he stays with a few others.
 
 ```{r hennie-osvaldo-two-homes}
 
