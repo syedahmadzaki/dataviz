@@ -649,7 +649,9 @@ Q5.1.1 <- ggplot(complete(cc_calendar, dayofmonth, location), aes(x = dayofmonth
 #  scale_x_discrete("dayofmonth") +
 #                   ,
 #                     n.breaks = 14) +
-  scale_y_discrete(limits=rev) +
+#  scale_x_discrete(expand = expansion(add = 1.6)) +
+  scale_y_discrete(expand = expansion(add = 1.6),
+                   limits=rev) +
   labs(title = "Calendar Heatmap of Location Visit Frequency By Date",
        x = "Day of Month",
        fill = "Frequency Of Visit") +
@@ -662,11 +664,10 @@ Q5.1.1 <- ggplot(complete(cc_calendar, dayofmonth, location), aes(x = dayofmonth
         panel.grid.minor = element_blank(),
 #        axis.title.x = element_blank(),
         axis.title.y = element_blank(),
-        legend.position = "bottom"
+        legend.position = "bottom")
 #        legend.title = element_text(size = 6),
 #        legend.text = element_text(size = 6),
 #        legend.key.size = unit(0.4, "cm")
-)
 #  xlab("Day of Month")
 
 Q5.1.1
@@ -719,15 +720,11 @@ Q5.1.2 <- ggplot(Q5.1.2_combined, aes(dayofmonth, value, group = source)) +
 Q5.1.2
 ```
 
-
-
-
-
 #### 5.1.3 What type of location is Hippokampos? It seems near to Gastech
 
 #### 5.1.4 Show spending outliers
 
-#### 5.1.5 Some txns at coffee chains occur only at selected hours
+#### 5.1.5 Some txns at coffee chains occur only at selected hours in the credit card data
 
 ```{r coffee-hour}
 
@@ -811,7 +808,114 @@ Q5.1.7
 
 Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
 
-#### 5.2.1 No vehicle movements on weekends before midday?
+#### 5.2.1a No vehicle movements on weekends before midday?
+
+```{r no-vehicles-on-weekends-before-midday}
+
+Q5.2.1a_weekday <- data.frame("weekday" = unique(cc[c('weekday')])) %>%
+  slice(rep(1:n(), each = 5))
+Q5.2.1a_period <- data.frame("period" = unique(cc[c('period')]))
+Q5.2.1a_period$period <- factor(Q5.2.1a_period$period, 
+                                levels = c("Morning 6am to 11.59am", 
+                                           "Afternoon 12noon to 5.59pm", 
+                                           "Evening 6pm to 8.59pm",
+                                           "Late Evening 9pm to 11.59pm",
+                                           "Late Night 12mn to 5.59am"))
+Q5.2.1a_period <- as.data.frame(lapply(Q5.2.1a_period,rep,7))
+Q5.2.1a_combined <- cbind(Q5.2.1a_weekday,Q5.2.1a_period)
+
+Q5.2.1a_cc <- cc %>%
+  group_by(weekday,period) %>%
+  tally()
+  
+Q5.2.1a_combined <- Q5.2.1a_combined %>%
+  left_join(Q5.2.1a_cc, by = c("weekday"="weekday","period"="period"))
+Q5.2.1a_combined$id <- seq(1, nrow(Q5.2.1a_combined))
+Q5.2.1a_combined[36:63,] <- NA
+Q5.2.1a_combined[36,4] <- 5.1
+Q5.2.1a_combined[37,4] <- 5.2
+Q5.2.1a_combined[38,4] <- 5.3
+Q5.2.1a_combined[39,4] <- 5.4
+Q5.2.1a_combined[40,4] <- 10.1
+Q5.2.1a_combined[41,4] <- 10.2
+Q5.2.1a_combined[42,4] <- 10.3
+Q5.2.1a_combined[43,4] <- 10.4
+Q5.2.1a_combined[44,4] <- 15.1
+Q5.2.1a_combined[45,4] <- 15.2
+Q5.2.1a_combined[46,4] <- 15.3
+Q5.2.1a_combined[47,4] <- 15.4
+Q5.2.1a_combined[48,4] <- 20.1
+Q5.2.1a_combined[49,4] <- 20.2
+Q5.2.1a_combined[50,4] <- 20.3
+Q5.2.1a_combined[51,4] <- 20.4
+Q5.2.1a_combined[52,4] <- 25.1
+Q5.2.1a_combined[53,4] <- 25.2
+Q5.2.1a_combined[54,4] <- 25.3
+Q5.2.1a_combined[55,4] <- 25.4
+Q5.2.1a_combined[56,4] <- 30.1
+Q5.2.1a_combined[57,4] <- 30.2
+Q5.2.1a_combined[58,4] <- 30.3
+Q5.2.1a_combined[59,4] <- 30.4
+Q5.2.1a_combined[60,4] <- 35.1
+Q5.2.1a_combined[61,4] <- 35.2
+Q5.2.1a_combined[62,4] <- 35.3
+Q5.2.1a_combined[63,4] <- 35.4
+
+Q5.2.1a_combined <- Q5.2.1a_combined %>%
+  arrange(id)
+Q5.2.1a_combined$id <- seq(1, nrow(Q5.2.1a_combined))
+Q5.2.1a_combined$period <- factor(Q5.2.1a_combined$period, 
+                                levels = c("Morning 6am to 11.59am", 
+                                           "Afternoon 12noon to 5.59pm", 
+                                           "Evening 6pm to 8.59pm",
+                                           "Late Evening 9pm to 11.59pm",
+                                           "Late Night 12mn to 5.59am"))
+
+Q5.2.1a_label <- Q5.2.1a_combined
+Q5.2.1a_number_of_bar <- nrow(Q5.2.1a_label)
+Q5.2.1a_angle <- 90 - 360 * (Q5.2.1a_label$id-0.5) /Q5.2.1a_number_of_bar
+Q5.2.1a_label$hjust <- ifelse(Q5.2.1a_angle < -90, 1, 0)
+Q5.2.1a_label$angle <- ifelse(Q5.2.1a_angle < -90, Q5.2.1a_angle+180, Q5.2.1a_angle)
+
+Q5.2.1a_base <- Q5.2.1a_combined %>% 
+  group_by(weekday) %>% 
+  summarize(start=min(id), end=max(id) - 4) %>% 
+  rowwise() %>% 
+  mutate(title=mean(c(start, end))) 
+
+Q5.2.1a_grid <- Q5.2.1a_base
+Q5.2.1a_grid$end <- Q5.2.1a_grid$end[ c( nrow(Q5.2.1a_grid), 1:nrow(Q5.2.1a_grid)-1)] + 1
+Q5.2.1a_grid$start <- Q5.2.1a_grid$start - 1
+Q5.2.1a_grid <- Q5.2.1a_grid[-1,]
+
+
+Q5.2.1a <- ggplot(Q5.2.1a_combined, aes(x=as.factor(id), y=n, fill=period)) +
+  geom_bar(aes(x=as.factor(id), y=n, fill=period), stat="identity", alpha=0.5) +
+  
+  geom_segment(data=Q5.2.1a_grid, aes(x = end, y = 120, xend = start, yend = 120), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=Q5.2.1a_grid, aes(x = end, y = 90, xend = start, yend = 90), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=Q5.2.1a_grid, aes(x = end, y = 60, xend = start, yend = 60), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=Q5.2.1a_grid, aes(x = end, y = 30, xend = start, yend = 30), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  
+  annotate("text", x = rep(max(Q5.2.1a_combined$id),4), y = c(30, 60, 90, 120), label = c("30", "60", "90", "120") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
+  
+  geom_bar(aes(x=as.factor(id), y=n, fill=period), stat="identity", alpha=0.5) +
+  ylim(-100,150) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.grid = element_blank(),
+        plot.margin = unit(rep(-1,4), "cm")) +
+  coord_polar() + 
+  geom_text(data=Q5.2.1a_label, aes(x=id, y=n+10, label=n, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=3, angle= Q5.2.1a_label$angle, inherit.aes = FALSE ) +
+  
+  geom_segment(data=Q5.2.1a_base, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, size=0.6 , inherit.aes = FALSE )  +
+  
+  geom_text(data=Q5.2.1a_base, aes(x=title, y=-18, label=weekday), color="black", fontface="bold",alpha=0.6, size=3, inherit.aes = FALSE )
+  
+Q5.2.1a 
+
+```
 
 #### 5.2.2 Large Distance Gap Between Consecutive GPS Records?
 
