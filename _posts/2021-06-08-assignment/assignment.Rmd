@@ -797,7 +797,7 @@ Q5.1.5
 
 #### 5.1.7 Cases of 1 Credit Card Tied To 2 Loyalty Cards And Vice Versa
 
-```{r cc-loyalty-match}
+```{r cc-loyalty-match, fig.height=9}
 
 #Q5.1.7 <- ggplot(complete(cc_loyalty_1, last4ccnum, loyaltynum), aes(x = loyaltynum, y = last4ccnum)) + 
 #  geom_tile(aes(fill = n), color = "white", size = 0.1) +
