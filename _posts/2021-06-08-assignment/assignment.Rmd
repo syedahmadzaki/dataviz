@@ -639,7 +639,7 @@ Here we will answer the VAST Challenge questions.
 Using just the credit and loyalty card data, identify the most popular locations, and when they are popular. What anomalies do you see? What corrections would you recommend to correct these anomalies? Please limit your answer to 8 images and 300 words.
 
 #### 5.1.1 Show popular locations
-Food and beverage places seem to be the more popular locations.
+Food and beverage places, such as Brew've Been Served, Guy's Gyros, Hallowed Grounds etc. seem to be the more popular locations, as highlighted in the dark grey tiles below.
 
 ```{r calendar-heatmap}
 
@@ -670,7 +670,8 @@ Q5.1.1 <- ggplot(complete(cc_calendar, dayofmonth, location), aes(x = dayofmonth
 Q5.1.1
 
 ```
-#### 5.1.2 Investigation Needed To Ascertain True Transaction Dates of Kronos Mart's Books, Perhaps Through Receipt Verification
+#### 5.1.2 Kronos Mart's Txns Suggest Tampering
+The txn dates of Kronos Mart differ by exactly one day, comparing either side of the credit card and loyalty data. Investigation needed to ascertain true transaction dates of Kronos Mart's books, perhaps through receipt verification. Looking at the GPS data, single visits on 9th, 11th, 12th, 13th, 15th, 16th and three visits on 18th suggests that these GPS visits matches more to loyalty data than the credit card data.
 
 ```{r kronos-mart}
 
@@ -719,7 +720,41 @@ Q5.1.2 <- ggplot(Q5.1.2_combined, aes(dayofmonth, value, group = source)) +
         legend.position = "none")
 
 Q5.1.2
+
 ```
+
+```{r kronos-mart-2, fig.height=4}
+
+Q5.1.2_gps <- tibble("dayofmonth" = c(6:19)) %>%
+                  left_join(spots %>%
+                    group_by(Location, dayofmonth) %>%
+                    tally() %>%
+                    filter(Location == "Kronos Mart") %>%
+                    ungroup(), by = "dayofmonth") %>%
+                    mutate(n2=n) %>%
+                    replace_na(list(n=0))
+
+Q5.1.2a <- ggplot(Q5.1.2_gps, 
+                  aes(x = dayofmonth, y = n)) +
+  geom_area(size = 1) +
+  geom_point() +
+  geom_text(aes(label = n2), na.rm = TRUE,
+            vjust = -1,
+            size = 3) +
+  scale_x_continuous(breaks = seq(6,19,1)) +
+  ylim(0,5) +
+  labs("title" = "GPS Movements to Kronos Mart Validates Loyalty Data",
+       "subtitle" = "GPS data seem to validate the loyalty data, more than the credit card data") +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position = "none")
+
+Q5.1.2a
+
+```
+
 #### 5.1.3 Unknown Locations Need To Be Verified. Existing Data Only Able To Approx. Type Of Location
 
 ```{r hippokampos}
@@ -727,18 +762,12 @@ Q5.1.2
 Q5.1.3 <- ggplot(cc, 
                  aes(x = hour, 
                      y = location, 
-                     #height = ..density.., 
                      fill = stat(x)
                      )) +
-#  geom_density_ridges2() +
-#  geom_ridgeline() +
                  geom_density_ridges_gradient(scale=3,rel_min_height = 0.001) +
   scale_x_continuous(breaks = 0:24) +
-#  xlim(0,24) +
   scale_y_discrete(limits=rev) +
-#  geom_density_ridges(scale = 4, stat = "density") +  
   scale_fill_viridis_c(name = "ABC", option = "A") +
-#  geom_density_ridges(stat = "identity", scale = 3) +
   theme_ridges(font_size = 7, grid = TRUE) +
   theme(legend.position = "none") +
   labs(title = "Uncovering Location Type Beyond Ambiguous Location Names",
@@ -747,13 +776,12 @@ Q5.1.3 <- ggplot(cc,
 Q5.1.3
 
 ```
-#### 5.1.4 Show spending outliers
 
-#### 5.1.5 Some txns at coffee chains occur only at selected hours in the credit card data
+#### 5.1.4 Some txns at coffee chains occur only at selected hours in the credit card data
 
 ```{r coffee-hour}
 
-Q5.1.5_cc <- cc %>%
+Q5.1.4_cc <- cc %>%
   left_join(dplyr::select(spots_median,Location, Location.Type), by = c("location" = "Location")) %>%
   filter(Location.Type == "Coffee Cafe") %>%
   dplyr::select(location, hour, price) %>%
@@ -763,25 +791,23 @@ Q5.1.5_cc <- cc %>%
   dcast(hour ~ location, value.var = "coffee_money")
 
 
-Q5.1.5_cc$hour <- as_factor(Q5.1.5_cc$hour)
+Q5.1.4_cc$hour <- as_factor(Q5.1.4_cc$hour)
 
-Q5.1.5_combined <- data.frame(hour = c(1:24))
-Q5.1.5_combined$hour <- as_factor(Q5.1.5_combined$hour)
-Q5.1.5_combined <- Q5.1.5_combined %>%
-  left_join(Q5.1.5_cc, by = "hour")
+Q5.1.4_combined <- data.frame(hour = c(1:24))
+Q5.1.4_combined$hour <- as_factor(Q5.1.4_combined$hour)
+Q5.1.4_combined <- Q5.1.4_combined %>%
+  left_join(Q5.1.4_cc, by = "hour")
 
-Q5.1.5_combined <-melt(Q5.1.5_combined, id.vars = "hour", variable.name = "coffee_place")
+Q5.1.4_combined <-melt(Q5.1.4_combined, id.vars = "hour", variable.name = "coffee_place")
 
-Q5.1.5 <- ggplot(Q5.1.5_combined, aes(hour, value, fill = coffee_place)) +
+Q5.1.4 <- ggplot(Q5.1.4_combined, aes(hour, value, fill = coffee_place)) +
   geom_bar(stat = "identity") +
   coord_polar(theta = "x") +
-#  ggtitle("Txns of Coffee Chains By Hour") +
   labs(title = "Daily CC Txns At Coffee Chains Restricted To Only Three Hours",
        subtitle = "Three Coffee Chains Have CC Txns Only At Noon") +
   xlab("") +
   ylab("") +
   theme(
-#    plot.title = element_text(hjust = 0.5),
         axis.ticks = element_blank(), 
         axis.text.y = element_blank(), 
         panel.background = element_blank(), 
@@ -789,58 +815,28 @@ Q5.1.5 <- ggplot(Q5.1.5_combined, aes(hour, value, fill = coffee_place)) +
         axis.text.x = element_text(size = 15), 
         legend.title=element_blank())
 
-Q5.1.5
+Q5.1.4
 
 ```
-
-#### 5.1.6 What type of location is Hippokampos? It seems near to Gastech
-
-#### 5.1.7 Cases of 1 Credit Card Tied To 2 Loyalty Cards And Vice Versa
+#### 5.1.5 Cases of 1 Credit Card Tied To 2 Loyalty Cards And Vice Versa
 
 ```{r cc-loyalty-match, fig.height=9}
 
-#Q5.1.7 <- ggplot(complete(cc_loyalty_1, last4ccnum, loyaltynum), aes(x = loyaltynum, y = last4ccnum)) + 
-#  geom_tile(aes(fill = n), color = "white", size = 0.1) +
-#  scale_fill_gradient(low = "light grey", high = "black", na.value = "light grey") +
-#  scale_x_date(date_labels = "%a \n %d %b", 
-#               date_breaks = "1 day") +
-#  scale_x_discrete("dayofmonth") +
-#                   ,
-#                     n.breaks = 14) +
-#  scale_y_discrete(limits=rev) +
-#  labs(title = "Calendar Heatmap of Credit Card And Matching Loyalty Numbers",
-#       x = "Loyalty Numbers",
-#       fill = "Matching Instance") +
-#  theme_bw() +
-#  theme(axis.ticks = element_blank(),
-#        plot.title = element_text(hjust=0.5),
-#        panel.border = element_blank(),
-#        panel.spacing = unit(0.1, "cm"),
-#        panel.grid.major = element_blank(), 
-#        panel.grid.minor = element_blank(),
-#        axis.title.x = element_blank(),
-#        axis.title.y = element_blank(),
-#        legend.position = "bottom"
-#        legend.title = element_text(size = 6),
-#        legend.text = element_text(size = 6),
-#        legend.key.size = unit(0.4, "cm"))
-#  xlab("Day of Month")
-
-Q5.1.7_label_cc <- data.frame("id" = 1:54,
+Q5.1.5_label_cc <- data.frame("id" = 1:54,
                               "code" = as_factor(cc_loyalty_1$last4ccnum))
-Q5.1.7_label_loyalty <- data.frame("id" = 55:108,
+Q5.1.5_label_loyalty <- data.frame("id" = 55:108,
                                    "code" = cc_loyalty_1$loyaltynum)
   
-Q5.1.7_label <- bind_rows(Q5.1.7_label_cc,
-                      Q5.1.7_label_loyalty)
-Q5.1.7_label <- subset(Q5.1.7_label, select = -1 )
+Q5.1.5_label <- bind_rows(Q5.1.5_label_cc,
+                      Q5.1.5_label_loyalty)
+Q5.1.5_label <- subset(Q5.1.5_label, select = -1 )
 
-Q5.1.7 <- ggparcoord(cc_loyalty_1,
+Q5.1.5 <- ggparcoord(cc_loyalty_1,
                      columns = 1:2,
                      groupColumn = 4,
                      showPoints = TRUE,
                      alphaLines = 1) +
-  geom_text(aes(label= Q5.1.7_label$code),
+  geom_text(aes(label= Q5.1.5_label$code),
             size = 3,
             nudge_x = 0.05) +
   scale_color_manual(values=c( "#172623", "#E8E8E8")) +
@@ -852,9 +848,10 @@ Q5.1.7 <- ggparcoord(cc_loyalty_1,
         labs(title = "Credit Card and Loyalty Number Mostly Matched One-To-One",
              subtitle = "Two Loyalty Numbers Are Each Attached To Two Different Credit Cards; \nOne Credit Card Linked To Two Different Loyalty Numbers")
 
-Q5.1.7
+Q5.1.5
 
 ```
+#### 5.1.6 Show spending outliers
 
 #### 5.1.99 Provide your answer and corresponding images here.
 
