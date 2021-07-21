@@ -503,46 +503,6 @@ spots_median <- spots_median %>% # Add additional column to classify locations i
 
 ```
 
-### 4.3	Combining Both Credit Card and Spots Data Using Fuzzy Join (OSA)
-We will now attempt to find matching rows between the cc and spot data. 
-
-ABC Need to remove five duplicates at 
-
-```{r fuzzyjoin-innerjoin-stringdist-cc-spots}
-
-cc_spots <- cc %>% # Create a new df that shows matches with a max distance difference of 1
-  stringdist_inner_join(spots, 
-                        by = c("concat_cc_spots" = "concat_spots_cc"),
-                        method = "osa",
-                        max_dist = 1,
-                        distance_col = "distance")
-
-cc_spots_1 <- cc_spots %>% # Isolate best matching cc and loyalty with more than 2 counts
-  filter(!is.na(FullName)) %>% # Remove unknown drivers
-  group_by(RoleNName,last4ccnum) %>%
-  count() %>%
-  arrange(RoleNName,-n) %>% # Arrange the highest to lowest count in each group
-  ungroup()
-
-cc_spots_1 <- cc_spots_1[!duplicated(cc_spots_1$RoleNName),] # Isolating 1 cc to 1 driver
-
-cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five duplicates
-
-#write_csv(cc_spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_spots.csv")
-
-#write_csv(cc_loyalty_1,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_1.csv")
-
-#cc_loyalty_duplicate_cc <- cc_loyalty_1 %>% # Extract duplicates in cc data
-#  filter(cc_loyalty_1$last4ccnum == cc_loyalty_1$last4ccnum[duplicated(cc_loyalty_1$last4ccnum)])
-
-#cc_loyalty_duplicate_loyalty <- subset(cc_loyalty_1,loyaltynum == "L6267" | loyaltynum == "L3288") # Extract duplicates in loyalty data
-
-```
-
-
-
-
-
 Creating custom map of Abila with the use of tmap
 
 ```{r tmap-visualisation, echo = T, message = FALSE}
@@ -858,11 +818,6 @@ Q5.1.5
 ```
 #### 5.1.6 Show spending outliers
 
-#### 5.1.99 Provide your answer and corresponding images here.
-
-
-
-
 ### 5.2 Question 2 And Its Answers
 
 Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
@@ -1018,7 +973,48 @@ Q5.2.3
 
 Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
 
-#### 5.3.1 Provide your answer and corresponding images here.
+#### 5.3.1	Combining Both Credit Card and Spots Data Using Fuzzy Join (OSA)
+We will find matching IDs between the credit card and spots data. Spots data are basically GPS points that have remained stationary for more than 10 mins. The main columns of comparison are the day of month, location and hour. Identical rows are determined based on a max of 1 character edit. From here, we identify the match, by counting the max number of matchings rows between credit card and spots data.
+
+```{r fuzzyjoin-innerjoin-stringdist-cc-spots, eval=FALSE}
+
+cc_spots <- cc %>% # Create a new df that shows matches with a max distance difference of 1
+  stringdist_inner_join(spots, 
+                        by = c("concat_cc_spots" = "concat_spots_cc"),
+                        method = "osa",
+                        max_dist = 1,
+                        distance_col = "distance")
+
+cc_spots_1 <- cc_spots %>% # Isolate best matching cc and spots with more than 2 counts
+  filter(!is.na(FullName)) %>% # Remove unknown drivers
+  group_by(RoleNName,last4ccnum) %>%
+  count() %>%
+  arrange(RoleNName,-n) %>% # Arrange the highest to lowest count in each group
+  ungroup()
+
+cc_spots_1[1,3] <- "matches"
+
+cc_summary <- cc %>%
+  group_by(last4ccnum) %>%
+  count() %>%
+  ungroup()
+
+cc_spots_1 <- cc_spots_1[!duplicated(cc_spots_1$RoleNName),] # Isolating 1 cc to 1 driver
+
+cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five duplicates
+
+#write_csv(cc_spots_1,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_spots_1.csv")
+
+#write_csv(cc_loyalty_1,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_1.csv")
+
+#cc_loyalty_duplicate_cc <- cc_loyalty_1 %>% # Extract duplicates in cc data
+#  filter(cc_loyalty_1$last4ccnum == cc_loyalty_1$last4ccnum[duplicated(cc_loyalty_1$last4ccnum)])
+
+#cc_loyalty_duplicate_loyalty <- subset(cc_loyalty_1,loyaltynum == "L6267" | loyaltynum == "L3288") # Extract duplicates in loyalty data
+
+```
+
+#### 5.3.99 Provide your answer and corresponding images here.
 
 ### 5.4 Question 4 And Its Answers
 
