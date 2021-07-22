@@ -52,6 +52,21 @@ As a visual analytics expert assisting law enforcement, your mission is to ident
 Use visual analytics to analyze the available data and develop responses to the questions below. In addition, prepare a video that shows how you used visual analytics to solve this challenge. Submission instructions are available here. Entry forms are available for download [here.](https://vast-challenge.github.io/2021/MC2.html)
 
 ## 2.	Literature Review
+Before we begin our literature review, it's important that we start by loading all the necessary datasets provided in the VAST Challenge 2021 Mini-Challenge 2.
+
+```{r load-all-datasets, echo = T, message = FALSE, results = 'hide'}
+
+# Loading all datasets and image
+cc <- readr::read_csv("data/cc_data.csv") # Add credit card data
+loyalty <- readr::read_csv("data/loyalty_data.csv") # Add loyalty data
+mc2 <- raster("data/MC2-tourist_modified.tif") # Add tif file as a raster layer
+gps <- readr::read_csv("data/gps.csv") # Add gps data
+car <- readr::read_csv("data/car-assignments.csv") # Add car assignments
+Abila_st <- st_read(dsn = "data", layer = "Abila")
+Kronos_sf <- st_as_sf(st_read(dsn = "data", layer = "Kronos_Island"))
+
+```
+
 A cursory look at the dataset reveals the following data types:
 
 | Data                    | Type        | Description                                         |
@@ -106,32 +121,43 @@ Unfortunately, deciding on the fuzzy logic package is the easy part. The harder 
 Out of the above methods, osa, lv and dl seems most apt, since we're dealing with phrases with differing lengths and are more concerned with slight edits, realignment, addition and subtraction of letters within these phrases. We'll rely on the osa method since it's a balance between finding the right edits and speed.
 
 ### 2.2 Map Visualisations of GPS Data
+While it makes sense to convert our GPS points into spatial lines, using the furnished map pic as a basemap is less than ideal. As shown below, it's unclear whether the gps path coincides with the location icons shown on the map. These icons are too large, and does not reflect whether these gps points drove past or stopped at these points.
 
-ABC
+```{r mc2}
 
-### 2.3 Non-Map Visualisations of GPS Data
+gps$Timestamp <- date_time_parse(gps$Timestamp,
+                zone = "UTC",
+                format = "%m/%d/%Y %H:%M:%S") # Readjust loyalty timestamp
+gps$day <- as_factor(get_day(gps$Timestamp)) # Extract day of month and convert to factor data type
+gps$id <- as_factor(gps$id) # Change to factor data type
 
-ABC
-Calendar Heatmap (GPS Points per day) http://visualdata.wustl.edu/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/University%20of%20Buenos%20Aires%20-%20Tralice/
-Parallel Coordinates Graph (Location, Date, Timestamp, Price, Name) https://rpubs.com/tskam/PCP
-Gantt Chart
-Explore Hippokampos RadViz Clock Average Location https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/Central%20South%20University/
+gps_sf <- st_as_sf(gps, coords = c("long", "lat"), crs = 4326) # Changing into a shapefile
 
-## 3.	Data Understanding
-We start by loading all the necessary datasets provided in the VAST Challenge 2021 Mini-Challenge 2.
+gps_path1 <- gps_sf %>%
+  group_by(id, day) %>%
+  summarize(m = mean(Timestamp), 
+            do_union=FALSE, 
+            .groups = "drop") %>%
+  st_cast("LINESTRING")
 
-```{r load-all-datasets, echo = T, message = FALSE, results = 'hide'}
+tmap_mode("view")
+Q2.2_mc2 <- tm_shape(mc2) +
+            tm_rgb(mc2, r = 1,g = 2,b = 3,
+                   alpha = NA,
+                   saturation = 1,
+                   interpolate = TRUE,
+                   max.value = 255) +
+            tm_shape(gps_path1 %>%
+                     filter(id==1)) +
+            tm_lines()
 
-# Loading all datasets and image
-cc <- readr::read_csv("data/cc_data.csv") # Add credit card data
-loyalty <- readr::read_csv("data/loyalty_data.csv") # Add loyalty data
-mc2 <- raster("data/MC2-tourist_modified.tif") # Add tif file as a raster layer
-gps <- readr::read_csv("data/gps.csv") # Add gps data
-car <- readr::read_csv("data/car-assignments.csv") # Add car assignments
-Abila_st <- st_read(dsn = "data", layer = "Abila")
-Kronos_sf <- st_as_sf(st_read(dsn = "data", layer = "Kronos_Island"))
+Q2.2_mc2
 
 ```
+At the same time, we are provided with the Abila road network. This granular road network is not reflected at all within the map pic. Taking inspiration from [City University London's entry](https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/giCentre%20-%20City%20University%20London/), they made great use of the Abila road network to create their own map (reproduced below). To bring it a step further, we will recreate this map in an interactive fashion in subsequent sections. For now, let's prepare the necessary data.
+
+![City University London's MC2 Sample Map Entry](img/ferro.png)
+## 3.	Data Understanding  
 As always, we review each dataset in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.
 
 While reviewing the four csv data, we immediately noticed a few potential issues:  
@@ -197,10 +223,10 @@ car$RoleNName <- paste(car$CarID, car$CurrentEmploymentTitle, car$FullName, sep 
 
 #--------------- Cleaning GPS data ---------------
 
-gps$id <- as_factor(gps$id) # Change the column format to nominal format
-gps$Timestamp <- date_time_parse(gps$Timestamp,
-                zone = "UTC",
-                format = "%m/%d/%Y %H:%M:%S") # Readjust loyalty timestamp
+#gps$id <- as_factor(gps$id) # Change the column format to nominal format
+#gps$Timestamp <- date_time_parse(gps$Timestamp,
+#                zone = "UTC",
+#                format = "%m/%d/%Y %H:%M:%S") # Readjust loyalty timestamp
 gps$date <- as_date(gps$Timestamp) # Create a separate column just for dates in the gps data
 gps$hour <- hour(gps$Timestamp) # Create a separate column just for hours in the gps data
 gps$period <- case_when( # Segment hour into 5 separate periods
@@ -217,7 +243,7 @@ gps$period <- factor(gps$period, # Order periods accordingly
                                 "Late Evening 9pm to 11.59pm",
                                 "Late Night 12mn to 5.59am"))
 gps$dayofmonth <- day(gps$Timestamp) # Extract day of month from timestamp in a new column
-gps$day <- as_factor(get_day(gps$Timestamp)) # Change the column format to nominal format
+#gps$day <- as_factor(get_day(gps$Timestamp)) # Change the column format to nominal format
 gps$weekday <- wday(gps$Timestamp, label = TRUE) # Extract day of week from timestamp in a new column
 
 ```
@@ -494,16 +520,10 @@ spots_median <- spots_median %>% # Add additional column to classify locations i
                     "Frydos Autosupply n' More",
                     "U-Pump") ~ "Transport",
     ))
-
-#sum(is.na(spots$Location))
-#length(grep("Frydos Autosupply n' More", spots$Location))
-#write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_latest.csv")
-#write_csv(spots_median,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_median.csv")
-#write_csv(cc,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_date.csv")
-
+spots_median_sf <- st_as_sf(spots_median, coords = c("long.median", "lat.median"), crs = 4326) # Changing into a shapefile
 ```
 
-Creating custom map of Abila with the use of tmap
+Using the identified spots, we will create our custom map using the tmap package, as well as use the Abila road network. 
 
 ```{r tmap-visualisation, echo = T, message = FALSE}
 
@@ -511,15 +531,13 @@ Abila_st_union <- st_union(Abila_st) # Dissolve Abila road network
 Abila_st_proj <- st_transform(Abila_st_union, crs = 3857)
 Abila_st_buffer <- st_buffer(Abila_st_proj, dist = 25, nQuadSegs = 5, ) # Create a buffer around the dissolved Abila road network
 
-gps_sf <- st_as_sf(gps, coords = c("long", "lat"), crs = 4326) # Changing into a shapefile
-spots_median_sf <- st_as_sf(spots_median, coords = c("long.median", "lat.median"), crs = 4326) # Changing into a shapefile
 gps_path <- gps_sf %>% # Creating a movement path
   group_by(id) %>%
   summarize(m = mean(Timestamp), 
             do_union=FALSE) %>%
   left_join(dplyr::select(car,CarID,RoleNName), by = c("id" = "CarID")) %>% #Add in RoleNName column
   ungroup() %>%
-  st_cast("LINESTRING")  
+  st_cast("LINESTRING")
 
 # Create blue polygon as background to mimic sea
 long.sea <- c(24.91075,24.91075,24.8232,24.8232,24.91075)
@@ -532,19 +550,13 @@ st_crs(sea_sf) <- 4326
 sea_poly<- st_sf(
   st_cast(
     st_combine(sea_sf$geometry),"POLYGON"
-  )
-)
+  ))
 
 # Clip a smaller Kronos island around Abila
 Kronos_sf_small <- st_crop(Kronos_sf, c(xmin = 24.8232, xmax = 24.91075, ymin = 36.0445, ymax = 36.09543))
 
 tmap_mode("view")
-#tm_shape(mc2) +
-#  tm_rgb(mc2, r = 1,g = 2,b = 3,
-#       alpha = NA,
-#       saturation = 1,
-#       interpolate = TRUE,
-#       max.value = 255) +
+
 custom_tmap <- tm_shape(sea_poly) +
   tm_polygons(col="lightblue") +
 tm_shape(Kronos_sf_small) +
@@ -560,37 +572,8 @@ tm_shape(spots_median_sf) +
           size = 0.2)
 
 custom_tmap
-#class(sea_poly)
-#st_cast(sea_sf,"POLYGON")
-#class(sea_sf)
-#sea_sf <- st_multilinestring(sea_sf)
-#st_cast(sea_sf, "POLYGON")
-#sea <- matrix(c(24.90976,36.09543,
-#                24.90976,36.04499,
-#                24.82419,36.04499,
-#                24.82419,36.09543,
-#                24.90976,36.09543), ncol=2, byrow = TRUE)
-#sea_poly <- st_polygon(list(sea))
-#sea_poly <- st_set_crs(sea_poly, 4326)
-#st_crs(sea_poly)
-#class(sea_poly)
-#gps_path_selected <- gps_path %>%
-#  filter(id==3)
-#gps_path_selected <- gps_path %>%
-#  filter(id==1)
-#st_crs(Abila_st_union)
-#st_crs(Abila_st_buffer)
-#print(Abila_st_buffer)
-#class(Abila_st)
-#Abila_st_proj <- st_transform(Abila_st, 32632) # UTM Zone 32N
-#Abila_st_buffer <- st_buffer(Abila_st_proj, dist = 100)#write_sf(Abila_st_union,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\Abila_st_union.shp")
-#write_sf(Abila_st_buffer,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\Abila_st_buffer.shp")
-#write_sf(sea_poly,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\sea_poly.shp")
 
 ```
-
-
-
 
 ## 5.	Data Exploration Analysis
 
@@ -667,7 +650,7 @@ Q5.1.2 <- ggplot(Q5.1.2_combined, aes(dayofmonth, value, group = source)) +
             size = 1) +
   geom_point() +
   geom_text(data=subset(Q5.1.2_combined, value != 0),
-            aes(label = value,
+            aes(label = round(value,0),
             group = source),
             vjust = -1,
             size = 3) +
@@ -1472,5 +1455,11 @@ cc_calendar_ggplot_one
 
 ```
 
+### 2.3 Non-Map Visualisations of GPS Data
 
+ABC
+Calendar Heatmap (GPS Points per day) http://visualdata.wustl.edu/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/University%20of%20Buenos%20Aires%20-%20Tralice/
+Parallel Coordinates Graph (Location, Date, Timestamp, Price, Name) https://rpubs.com/tskam/PCP
+Gantt Chart
+Explore Hippokampos RadViz Clock Average Location https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/Central%20South%20University/
 
