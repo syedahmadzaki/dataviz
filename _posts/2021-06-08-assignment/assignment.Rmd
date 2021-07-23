@@ -687,7 +687,7 @@ Q5.1.3 <- ggplot(cc,
   scale_fill_viridis_c(name = "ABC", option = "A") +
   theme_ridges(font_size = 7, grid = TRUE) +
   theme(legend.position = "none") +
-  labs(title = "Uncovering Location Type Beyond Ambiguous Location Names",
+  labs(title = "Uncovering Location Type Beyond Ambiguous Location Names Using Credit Card Data",
        subtitle = "High Noon Txns Suggests Abila Zacharo and Hippokampos As Food Outlets")
 
 Q5.1.3
@@ -873,7 +873,7 @@ Q5.1.6 <- ggparcoord(cc_loyalty_1,
                      alphaLines = 1) +
   geom_text(aes(label= Q5.1.6_label$code),
             size = 3,
-            nudge_x = 0.06) +
+            nudge_x = 0.07) +
   scale_color_manual(values=c( "#172623", "#E8E8E8")) +
   theme_minimal() +
   scale_y_discrete(breaks = NULL) +
@@ -892,123 +892,12 @@ Q5.1.6
 
 Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
 
-#### 5.2.1a No Vehicle Movements On Weekends Before Midday?
-
-```{r gps-no-vehicles-on-weekends-before-midday}
-
-Q5.2.1a_weekday <- data.frame("weekday" = unique(cc[c('weekday')])) %>%
-  slice(rep(1:n(), each = 5))
-Q5.2.1a_period <- data.frame("period" = unique(cc[c('period')]))
-Q5.2.1a_period$period <- factor(Q5.2.1a_period$period, 
-                                levels = c("Morning 6am to 11.59am", 
-                                           "Afternoon 12noon to 5.59pm", 
-                                           "Evening 6pm to 8.59pm",
-                                           "Late Evening 9pm to 11.59pm",
-                                           "Late Night 12mn to 5.59am"))
-Q5.2.1a_period <- as.data.frame(lapply(Q5.2.1a_period,rep,7))
-Q5.2.1a_combined <- cbind(Q5.2.1a_weekday,Q5.2.1a_period)
-
-Q5.2.1a_cc <- cc %>%
-  group_by(weekday,period) %>%
-  tally() %>%
-  ungroup()
-  
-Q5.2.1a_combined <- Q5.2.1a_combined %>%
-  left_join(Q5.2.1a_cc, by = c("weekday"="weekday","period"="period"))
-Q5.2.1a_combined$id <- seq(1, nrow(Q5.2.1a_combined))
-Q5.2.1a_combined[36:63,] <- NA
-Q5.2.1a_combined[36,4] <- 5.1
-Q5.2.1a_combined[37,4] <- 5.2
-Q5.2.1a_combined[38,4] <- 5.3
-Q5.2.1a_combined[39,4] <- 5.4
-Q5.2.1a_combined[40,4] <- 10.1
-Q5.2.1a_combined[41,4] <- 10.2
-Q5.2.1a_combined[42,4] <- 10.3
-Q5.2.1a_combined[43,4] <- 10.4
-Q5.2.1a_combined[44,4] <- 15.1
-Q5.2.1a_combined[45,4] <- 15.2
-Q5.2.1a_combined[46,4] <- 15.3
-Q5.2.1a_combined[47,4] <- 15.4
-Q5.2.1a_combined[48,4] <- 20.1
-Q5.2.1a_combined[49,4] <- 20.2
-Q5.2.1a_combined[50,4] <- 20.3
-Q5.2.1a_combined[51,4] <- 20.4
-Q5.2.1a_combined[52,4] <- 25.1
-Q5.2.1a_combined[53,4] <- 25.2
-Q5.2.1a_combined[54,4] <- 25.3
-Q5.2.1a_combined[55,4] <- 25.4
-Q5.2.1a_combined[56,4] <- 30.1
-Q5.2.1a_combined[57,4] <- 30.2
-Q5.2.1a_combined[58,4] <- 30.3
-Q5.2.1a_combined[59,4] <- 30.4
-Q5.2.1a_combined[60,4] <- 35.1
-Q5.2.1a_combined[61,4] <- 35.2
-Q5.2.1a_combined[62,4] <- 35.3
-Q5.2.1a_combined[63,4] <- 35.4
-
-Q5.2.1a_combined <- Q5.2.1a_combined %>%
-  arrange(id)
-Q5.2.1a_combined$id <- seq(1, nrow(Q5.2.1a_combined))
-Q5.2.1a_combined$period <- factor(Q5.2.1a_combined$period, 
-                                levels = c("Morning 6am to 11.59am", 
-                                           "Afternoon 12noon to 5.59pm", 
-                                           "Evening 6pm to 8.59pm",
-                                           "Late Evening 9pm to 11.59pm",
-                                           "Late Night 12mn to 5.59am"))
-
-Q5.2.1a_label <- Q5.2.1a_combined
-Q5.2.1a_number_of_bar <- nrow(Q5.2.1a_label)
-Q5.2.1a_angle <- 90 - 360 * (Q5.2.1a_label$id-0.5) /Q5.2.1a_number_of_bar
-Q5.2.1a_label$hjust <- ifelse(Q5.2.1a_angle < -90, 1, 0)
-Q5.2.1a_label$angle <- ifelse(Q5.2.1a_angle < -90, Q5.2.1a_angle+180, Q5.2.1a_angle)
-
-Q5.2.1a_base <- Q5.2.1a_combined %>% 
-  group_by(weekday) %>% 
-  summarize(start=min(id), end=max(id) - 4, .groups = "drop") %>% 
-  rowwise() %>% 
-  mutate(title=mean(c(start, end))) %>%
-  ungroup()
-
-Q5.2.1a_grid <- Q5.2.1a_base
-Q5.2.1a_grid$end <- Q5.2.1a_grid$end[ c( nrow(Q5.2.1a_grid), 1:nrow(Q5.2.1a_grid)-1)] + 1
-Q5.2.1a_grid$start <- Q5.2.1a_grid$start - 1
-Q5.2.1a_grid <- Q5.2.1a_grid[-1,]
-
-
-Q5.2.1a <- ggplot(Q5.2.1a_combined, aes(x=as_factor(id), y=n, fill=period)) +
-  geom_bar(aes(x=as_factor(id), y=n, fill=period), stat="identity", alpha=0.5) +
-  
-  geom_segment(data=Q5.2.1a_grid, aes(x = end, y = 120, xend = start, yend = 120), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
-  geom_segment(data=Q5.2.1a_grid, aes(x = end, y = 90, xend = start, yend = 90), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
-  geom_segment(data=Q5.2.1a_grid, aes(x = end, y = 60, xend = start, yend = 60), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
-  geom_segment(data=Q5.2.1a_grid, aes(x = end, y = 30, xend = start, yend = 30), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
-  
-  annotate("text", x = rep(max(Q5.2.1a_combined$id),4), y = c(30, 60, 90, 120), label = c("30", "60", "90", "120") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
-  
-  geom_bar(aes(x=as_factor(id), y=n, fill=period), stat="identity", alpha=0.5) +
-  ylim(-100,150) +
-  theme_minimal() +
-  theme(axis.text = element_blank(),
-        axis.title = element_blank(),
-        panel.grid = element_blank(),
-        plot.margin = unit(rep(-1,4), "cm")) +
-  coord_polar() + 
-  geom_text(data=Q5.2.1a_label, aes(x=id, y=n+10, label=n, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=3, angle= Q5.2.1a_label$angle, inherit.aes = FALSE ) +
-  
-  geom_segment(data=Q5.2.1a_base, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, size=0.6 , inherit.aes = FALSE )  +
-  
-  geom_text(data=Q5.2.1a_base, aes(x=title, y=-18, label=weekday), color="black", fontface="bold",alpha=0.6, size=3, inherit.aes = FALSE )
-  
-Q5.2.1a 
-
-```
-
-#### 5.2.2 GPS Seems To Validate Kronos Mart's Loyalty Txns
+#### 5.2.1 GPS Seems To Validate Kronos Mart's Loyalty Txns
 In section 5.1.2 earlier, we mentioned of the possibility of transational data tampering specifically relating to Kronos Mart. Here, using looking at the GPS data, single visits on 9th, 11th, 12th, 13th, 15th, 16th and three visits on 18th suggests that these GPS visits matches more to loyalty data than the credit card data.
 
 ```{r kronos-mart-2, fig.height=4}
 
-Q5.2.2_gps <- tibble("dayofmonth" = c(6:19)) %>%
+Q5.2.1_gps <- tibble("dayofmonth" = c(6:19)) %>%
                   left_join(spots %>%
                     group_by(Location, dayofmonth) %>%
                     tally() %>%
@@ -1017,7 +906,7 @@ Q5.2.2_gps <- tibble("dayofmonth" = c(6:19)) %>%
                     mutate(n2=n) %>%
                     replace_na(list(n=0))
 
-Q5.2.2 <- ggplot(Q5.2.2_gps, 
+Q5.2.1 <- ggplot(Q5.2.1_gps, 
                   aes(x = dayofmonth, y = n)) +
   geom_area(size = 1) +
   geom_point() +
@@ -1034,11 +923,195 @@ Q5.2.2 <- ggplot(Q5.2.2_gps,
         panel.grid.minor.y = element_blank(),
         legend.position = "none")
 
+Q5.2.1
+
+```
+
+
+#### 5.2.2 GPS Validates F&B Outlets From Earlier Credit Card Data; Other Outlets Seem To Have Unmatched Visits  
+Visitations to unknown locations such as Hippokampos and Abila Zacharo during noon / lunch time confirms these locations as food outlets. However, visit frequency to other locations seem to differ:  
+- Some locations such as Bean There Done That, Brewed Awakenings and Jack's Magical Beans has high gps visits in the morning, whereas credit card data shows stronger transactions during lunch time  
+- Kronos Mart's GPS data suggests more activity between 12 noon to midnight, but credit card data suggests more activity between midnight and 12 noon   
+
+```{r gps-hippokampos}
+
+Q5.2.2 <- ggplot(spots %>%
+                   filter(!grepl("Home|Anonymous|GasTech", Location)), 
+                 aes(x = hour, 
+                     y = Location, 
+                     fill = stat(x)
+                     )) +
+                 geom_density_ridges_gradient(scale=3,rel_min_height = 0.001) +
+  scale_x_continuous(breaks = 0:24) +
+  scale_y_discrete(limits=rev) +
+  scale_fill_viridis_c(name = "ABC", option = "A") +
+  theme_ridges(font_size = 7, grid = TRUE) +
+  theme(legend.position = "none") +
+  labs(title = "Uncovering Location Type Beyond Ambiguous Location Names Using GPS Data",
+       subtitle = "High Noon GPS Activity Continue To Suggest Abila Zacharo and Hippokampos As Food Outlets")
+
 Q5.2.2
 
 ```
 
-#### 5.2.4 Difference in locations between cc and gps data (Kronos Mart and others)? (low priority)
+#### 5.2.3 Selected Coffee Chain Activity Still Occur Only At Selected Hours Within The GPS Data
+GPS data shows restricted activity coffee chain activity to just two hours within the day. This differs from credit card data, where it occurs in three hours. Noon activity is missing from GPS data.  
+
+```{r gps-coffee-hour}
+
+Q5.2.3_spots <- spots %>%
+  left_join(dplyr::select(spots_median,Location, Location.Type), by = c("Location" = "Location")) %>%
+  filter(Location.Type == "Coffee Cafe") %>%
+#  dplyr::select(Location, hour) %>%
+  count(Location, hour) %>%
+#  group_by(location, hour) %>%
+#  summarise(coffee_money = sum(price), .groups = "drop") %>%
+  ungroup() %>%
+  dcast(hour ~ Location,)
+
+
+Q5.2.3_spots$hour <- as_factor(Q5.2.3_spots$hour)
+
+Q5.2.3_combined <- data.frame(hour = c(1:24))
+Q5.2.3_combined$hour <- as_factor(Q5.2.3_combined$hour)
+Q5.2.3_combined <- Q5.2.3_combined %>%
+  left_join(Q5.2.3_spots, by = "hour")
+
+Q5.2.3_combined <-melt(Q5.2.3_combined, id.vars = "hour", variable.name = "coffee_place")
+
+Q5.2.3 <- ggplot(Q5.2.3_combined, aes(hour, value, fill = coffee_place)) +
+  geom_bar(stat = "identity") +
+  coord_polar(theta = "x") +
+  labs(title = "Daily GPS Activity At Coffee Chains Restricted To Only Two Hours",
+       subtitle = "No More Noon Activity Has Compared To Its CC Txns") +
+  xlab("") +
+  ylab("") +
+  theme(
+        axis.ticks = element_blank(), 
+        axis.text.y = element_blank(), 
+        panel.background = element_blank(), 
+        panel.grid.major.x = element_line(colour="grey"),
+        axis.text.x = element_text(size = 15), 
+        legend.title=element_blank())
+
+Q5.2.3
+
+```
+
+#### 5.2.4 GPS Showed Some Semblance of Vehicle Movement On Weekends Before Midday
+On Sat morning, there was around 2,000+ gps points up and about in the city. This differs from a lack of credit card activity during the same period. Looking at the GPS data, these movements revolved around homes and Kronos Capital. Both these locations are not commercial locations, and thus no credit card transaction is to be expected anyways. 
+
+```{r gps-no-vehicles-on-weekends-before-midday}
+
+Q5.2.4_weekday <- data.frame("weekday" = unique(cc[c('weekday')])) %>%
+  slice(rep(1:n(), each = 5))
+Q5.2.4_period <- data.frame("period" = unique(cc[c('period')]))
+Q5.2.4_period$period <- factor(Q5.2.4_period$period, 
+                                levels = c("Morning 6am to 11.59am", 
+                                           "Afternoon 12noon to 5.59pm", 
+                                           "Evening 6pm to 8.59pm",
+                                           "Late Evening 9pm to 11.59pm",
+                                           "Late Night 12mn to 5.59am"))
+Q5.2.4_period <- as.data.frame(lapply(Q5.2.4_period,rep,7))
+Q5.2.4_combined <- cbind(Q5.2.4_weekday,Q5.2.4_period)
+
+Q5.2.4_gps <- gps %>%
+  group_by(weekday,period) %>%
+  tally() %>%
+  ungroup()
+  
+Q5.2.4_combined <- Q5.2.4_combined %>%
+  left_join(Q5.2.4_gps, by = c("weekday"="weekday","period"="period"))
+Q5.2.4_combined$id <- seq(1, nrow(Q5.2.4_combined))
+Q5.2.4_combined[36:63,] <- NA
+Q5.2.4_combined[36,4] <- 5.1
+Q5.2.4_combined[37,4] <- 5.2
+Q5.2.4_combined[38,4] <- 5.3
+Q5.2.4_combined[39,4] <- 5.4
+Q5.2.4_combined[40,4] <- 10.1
+Q5.2.4_combined[41,4] <- 10.2
+Q5.2.4_combined[42,4] <- 10.3
+Q5.2.4_combined[43,4] <- 10.4
+Q5.2.4_combined[44,4] <- 15.1
+Q5.2.4_combined[45,4] <- 15.2
+Q5.2.4_combined[46,4] <- 15.3
+Q5.2.4_combined[47,4] <- 15.4
+Q5.2.4_combined[48,4] <- 20.1
+Q5.2.4_combined[49,4] <- 20.2
+Q5.2.4_combined[50,4] <- 20.3
+Q5.2.4_combined[51,4] <- 20.4
+Q5.2.4_combined[52,4] <- 25.1
+Q5.2.4_combined[53,4] <- 25.2
+Q5.2.4_combined[54,4] <- 25.3
+Q5.2.4_combined[55,4] <- 25.4
+Q5.2.4_combined[56,4] <- 30.1
+Q5.2.4_combined[57,4] <- 30.2
+Q5.2.4_combined[58,4] <- 30.3
+Q5.2.4_combined[59,4] <- 30.4
+Q5.2.4_combined[60,4] <- 35.1
+Q5.2.4_combined[61,4] <- 35.2
+Q5.2.4_combined[62,4] <- 35.3
+Q5.2.4_combined[63,4] <- 35.4
+
+Q5.2.4_combined <- Q5.2.4_combined %>%
+  arrange(id)
+Q5.2.4_combined$id <- seq(1, nrow(Q5.2.4_combined))
+Q5.2.4_combined$period <- factor(Q5.2.4_combined$period, 
+                                levels = c("Morning 6am to 11.59am", 
+                                           "Afternoon 12noon to 5.59pm", 
+                                           "Evening 6pm to 8.59pm",
+                                           "Late Evening 9pm to 11.59pm",
+                                           "Late Night 12mn to 5.59am"))
+
+Q5.2.4_label <- Q5.2.4_combined
+Q5.2.4_number_of_bar <- nrow(Q5.2.4_label)
+Q5.2.4_angle <- 90 - 360 * (Q5.2.4_label$id-0.5) /Q5.2.4_number_of_bar
+Q5.2.4_label$hjust <- ifelse(Q5.2.4_angle < -90, 1, 0)
+Q5.2.4_label$angle <- ifelse(Q5.2.4_angle < -90, Q5.2.4_angle+180, Q5.2.4_angle)
+
+Q5.2.4_base <- Q5.2.4_combined %>% 
+  group_by(weekday) %>% 
+  summarize(start=min(id), end=max(id) - 4, .groups = "drop") %>% 
+  rowwise() %>% 
+  mutate(title=mean(c(start, end))) %>%
+  ungroup()
+
+Q5.2.4_grid <- Q5.2.4_base
+Q5.2.4_grid$end <- Q5.2.4_grid$end[ c( nrow(Q5.2.4_grid), 1:nrow(Q5.2.4_grid)-1)] + 1
+Q5.2.4_grid$start <- Q5.2.4_grid$start - 1
+Q5.2.4_grid <- Q5.2.4_grid[-1,]
+
+
+Q5.2.4 <- ggplot(Q5.2.4_combined, aes(x=as_factor(id), y=n, fill=period)) +
+  geom_bar(aes(x=as_factor(id), y=n, fill=period), stat="identity", alpha=0.5) +
+  
+  geom_segment(data=Q5.2.4_grid, aes(x = end, y = 80000, xend = start, yend = 80000), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=Q5.2.4_grid, aes(x = end, y = 60000, xend = start, yend = 60000), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=Q5.2.4_grid, aes(x = end, y = 40000, xend = start, yend = 40000), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  geom_segment(data=Q5.2.4_grid, aes(x = end, y = 20000, xend = start, yend = 20000), colour = "grey", alpha=1, size=0.3 , inherit.aes = FALSE ) +
+  
+  annotate("text", x = rep(max(Q5.2.4_combined$id),4), y = c(20000, 40000, 60000, 80000), label = c("20000", "40000", "60000", "80000") , color="grey", size=3 , angle=0, fontface="bold", hjust=1) +
+  
+  geom_bar(aes(x=as_factor(id), y=n, fill=period), stat="identity", alpha=0.5) +
+  ylim(-80000,100000) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.grid = element_blank(),
+        plot.margin = unit(rep(-1,4), "cm")) +
+  coord_polar() + 
+  geom_text(data=Q5.2.4_label, aes(x=id, y=n+10, label=n, hjust=hjust), color="black", fontface="bold",alpha=0.6, size=3, angle= Q5.2.4_label$angle, inherit.aes = FALSE ) +
+  
+  geom_segment(data=Q5.2.4_base, aes(x = start, y = -5, xend = end, yend = -5), colour = "black", alpha=0.8, size=0.6 , inherit.aes = FALSE )  +
+  
+  geom_text(data=Q5.2.4_base, aes(x=title, y=-10000, label=weekday), color="black", fontface="bold",alpha=0.6, size=3, inherit.aes = FALSE )
+  
+Q5.2.4 
+
+```
+
+
+
 
 #### 5.2.5 Difference in cc and gps logs for President? (low priority)
 
