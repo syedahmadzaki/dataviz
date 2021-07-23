@@ -121,7 +121,7 @@ Unfortunately, deciding on the fuzzy logic package is the easy part. The harder 
 Out of the above methods, osa, lv and dl seems most apt, since we're dealing with phrases with differing lengths and are more concerned with slight edits, realignment, addition and subtraction of letters within these phrases. We'll rely on the osa method since it's a balance between finding the right edits and speed.
 
 ### 2.2 Map Visualisations of GPS Data
-While it makes sense to convert our GPS points into spatial lines, using the furnished map pic as a basemap is less than ideal. As shown below, it's unclear whether the gps path coincides with the location icons shown on the map. These icons are too large, and does not reflect whether these gps points drove past or stopped at these points.
+While it makes sense to convert our GPS points into spatial lines, using the furnished map pic as a basemap is less than ideal. As shown below, it's unclear whether the GPS path coincides with the location icons shown on the map. These icons are far too large, and does not reflect whether these GPS points either stopped at or merely drove past these points. At the same time, the GPS path seem to run on a road network, that is not reflected within the furnished map pic.
 
 ```{r mc2}
 
@@ -142,22 +142,24 @@ gps_path1 <- gps_sf %>%
 
 tmap_mode("view")
 Q2.2_mc2 <- tm_shape(mc2) +
-            tm_rgb(mc2, r = 1,g = 2,b = 3,
+              tm_rgb(mc2, r = 1,g = 2,b = 3,
                    alpha = NA,
                    saturation = 1,
                    interpolate = TRUE,
                    max.value = 255) +
             tm_shape(gps_path1 %>%
                      filter(id==1)) +
-            tm_lines()
+              tm_lines()
 
 Q2.2_mc2
 
 ```
-At the same time, we are provided with the Abila road network. This granular road network is not reflected at all within the map pic. Taking inspiration from [City University London's entry](https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/giCentre%20-%20City%20University%20London/), they made great use of the Abila road network to create their own map (reproduced below). To bring it a step further, we will recreate this map in an interactive fashion in subsequent sections. For now, let's prepare the necessary data.
+At the same time, we are provided with the Abila road network. This granular road network is not reflected at all within the map pic. Taking inspiration from [City University London's entry](https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/giCentre%20-%20City%20University%20London/), they made great use of the Abila road network to create their own map (reproduced below). They then coupled this road network with actual location points that they have derived from the data. We will borrow this visualisation format as a basis for our own visualisation. To bring it a step further, we will recreate this map in an interactive fashion in subsequent sections. For now, let's prepare the necessary data.
 
 ![City University London's MC2 Sample Map Entry](img/ferro.png)
+
 ## 3.	Data Understanding  
+
 As always, we review each dataset in greater detail. This is a necessary step in order to accurately prepare the data for subsequent use.
 
 While reviewing the four csv data, we immediately noticed a few potential issues:  
@@ -523,6 +525,7 @@ spots_median <- spots_median %>% # Add additional column to classify locations i
 spots_median_sf <- st_as_sf(spots_median, coords = c("long.median", "lat.median"), crs = 4326) # Changing into a shapefile
 ```
 
+#### 4.2.3 Create Custom Map
 Using the identified spots, we will create our custom map using the tmap package, as well as use the Abila road network. 
 
 ```{r tmap-visualisation, echo = T, message = FALSE}
@@ -532,7 +535,7 @@ Abila_st_proj <- st_transform(Abila_st_union, crs = 3857)
 Abila_st_buffer <- st_buffer(Abila_st_proj, dist = 25, nQuadSegs = 5, ) # Create a buffer around the dissolved Abila road network
 
 gps_path <- gps_sf %>% # Creating a movement path
-  group_by(id) %>%
+  group_by(id, day) %>%
   summarize(m = mean(Timestamp), 
             do_union=FALSE) %>%
   left_join(dplyr::select(car,CarID,RoleNName), by = c("id" = "CarID")) %>% #Add in RoleNName column
@@ -616,7 +619,7 @@ Q5.1.1
 
 ```
 #### 5.1.2 Kronos Mart's Txns Suggest Tampering
-The txn dates of Kronos Mart differ by exactly one day, comparing either side of the credit card and loyalty data. Investigation needed to ascertain true transaction dates of Kronos Mart's books, perhaps through receipt verification. Looking at the GPS data, single visits on 9th, 11th, 12th, 13th, 15th, 16th and three visits on 18th suggests that these GPS visits matches more to loyalty data than the credit card data.
+The txn dates of Kronos Mart differ by exactly one day, comparing either side of the credit card and loyalty data. Investigation needed to ascertain true transaction dates of Kronos Mart's books, perhaps through receipt verification. We will compare the GPS points in section 5.2.2.
 
 ```{r kronos-mart}
 
@@ -665,38 +668,6 @@ Q5.1.2 <- ggplot(Q5.1.2_combined, aes(dayofmonth, value, group = source)) +
         legend.position = "none")
 
 Q5.1.2
-
-```
-
-```{r kronos-mart-2, fig.height=4}
-
-Q5.1.2_gps <- tibble("dayofmonth" = c(6:19)) %>%
-                  left_join(spots %>%
-                    group_by(Location, dayofmonth) %>%
-                    tally() %>%
-                    filter(Location == "Kronos Mart") %>%
-                    ungroup(), by = "dayofmonth") %>%
-                    mutate(n2=n) %>%
-                    replace_na(list(n=0))
-
-Q5.1.2a <- ggplot(Q5.1.2_gps, 
-                  aes(x = dayofmonth, y = n)) +
-  geom_area(size = 1) +
-  geom_point() +
-  geom_text(aes(label = n2), na.rm = TRUE,
-            vjust = -1,
-            size = 3) +
-  scale_x_continuous(breaks = seq(6,19,1)) +
-  ylim(0,5) +
-  labs("title" = "GPS Movements to Kronos Mart Validates Loyalty Data",
-       "subtitle" = "GPS data seem to validate the loyalty data, more than the credit card data") +
-  theme(axis.text.y = element_blank(),
-        axis.ticks.y = element_blank(),
-        panel.grid.major.y = element_blank(),
-        panel.grid.minor.y = element_blank(),
-        legend.position = "none")
-
-Q5.1.2a
 
 ```
 
@@ -916,31 +887,38 @@ Q5.2.1a
 
 ```
 
-#### 5.2.2 Large Distance Gap Between Consecutive GPS Records?
+#### 5.2.2 GPS Seems To Conform To Kronos Mart's Loyalty Txns
+In section 5.1.2 earlier, we mentioned of the possibility of transational data tampering specifically relating to Kronos Mart. Here, using looking at the GPS data, single visits on 9th, 11th, 12th, 13th, 15th, 16th and three visits on 18th suggests that these GPS visits matches more to loyalty data than the credit card data.
 
-#### 5.2.3 Weird Off-Road Driving by Isande Borrasca
+```{r kronos-mart-2, fig.height=4}
 
-```{r weird-driving-elsa}
+Q5.2.2_gps <- tibble("dayofmonth" = c(6:19)) %>%
+                  left_join(spots %>%
+                    group_by(Location, dayofmonth) %>%
+                    tally() %>%
+                    filter(Location == "Kronos Mart") %>%
+                    ungroup(), by = "dayofmonth") %>%
+                    mutate(n2=n) %>%
+                    replace_na(list(n=0))
 
-tmap_mode("view")
+Q5.2.2 <- ggplot(Q5.2.2_gps, 
+                  aes(x = dayofmonth, y = n)) +
+  geom_area(size = 1) +
+  geom_point() +
+  geom_text(aes(label = n2), na.rm = TRUE,
+            vjust = -1,
+            size = 3) +
+  scale_x_continuous(breaks = seq(6,19,1)) +
+  ylim(0,5) +
+  labs("title" = "GPS Movements to Kronos Mart Validates Loyalty Data",
+       "subtitle" = "GPS data seem to validate the loyalty data, more than the credit card data") +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        legend.position = "none")
 
-Q5.2.3 <- tm_shape(sea_poly) +
-  tm_polygons(col="lightblue") +
-tm_shape(Kronos_sf_small) +
-  tm_polygons(col = "beige") +
-tm_shape(Abila_st_buffer) +
-  tm_polygons(col = "white") +
-tm_shape(gps_path %>% filter(id==28)) + # Extract Isande's path
-  tm_lines(col = "black",
-           lty = 1,
-           id = "RoleNName") +
-tm_shape(spots_median_sf) +
-  tm_dots(col = "Location.Type",
-          id = "Location", # Bold in group
-          popup.vars = "Location Type:" =="Location.Type",
-          size = 0.2)
-
-Q5.2.3
+Q5.2.2
 
 ```
 
@@ -949,6 +927,8 @@ Q5.2.3
 #### 5.2.5 Difference in cc and gps logs for President?
 
 #### 5.2.6 Axel Calzas does not go to work?
+
+#### 5.2.7 Large Distance Gap Between Consecutive GPS Records?
 
 #### 5.2.99 Provide your answer and corresponding images here.
 
@@ -1003,7 +983,14 @@ cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five d
 
 Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
 
-#### 5.4.1 Elsa (ID: 7, black line) and Brand (ID: 33, blue line) Are Seeing Each Other
+#### 5.4.1 Elsa (ID: 7, black line) and Brand (ID: 33, blue line) Are Seeing Each Other  
+
+Both were frequenting the following places together at similar times and for similar durations:
+- Chostus Hotel  
+- Frydos Autosupply n' More  
+- Gathering at Engineer's Lars Home on 10th Jan Late Evening  
+- Hippokampos on 15th Jan Afternoon
+- Ouzeri Elian on 6th Jan Afternoon
 
 ```{r elsa-brand-couple}
 
@@ -1033,7 +1020,11 @@ Q5.4.1
 
 ```
 
-#### 5.4.2 21 Hennie Osvaldo Has Two Homes, of which he stays with a few others.
+#### 5.4.2 21 Hennie Osvaldo Has Two Homes, of which he stays with a few others  
+   
+Hennie seems to stay in two separate homes on different evenings:  
+- Either with Lidelse and Birgitta  
+- Or with Inga, Loreto and Isia  
 
 ```{r hennie-osvaldo-two-homes}
 
@@ -1050,9 +1041,7 @@ tm_shape(gps_path %>% filter(id==21)) + # Extract Hennie's path
            lty = 1,
            id = "RoleNName") +  
 tm_shape(spots_median_sf %>%
-#           filter(grepl("Hennie", "Location")) +
            filter(Location == "Shared Home B - 14 Lidelse 18 Birgitta 21 Hennie" | Location == "Shared Home E - 13 Inga 15 Loreto 16 Isia 21 Hennie")) +
-#           filter(Location.Type == "Residential")) +
   tm_dots(col = "green",
           size = 0.2)
 
@@ -1066,11 +1055,14 @@ Q5.4.2
 
 Do you see evidence of suspicious activity? Identify 1- 10 locations where you believe the suspicious activity is occurring, and why. Please limit your response to 10 images and 500 words.
 
-Suspicious activities can be in the following form: 
-1) Explore presence of two or more individuals at the same location at the same hour for extended periods
-2) Individuals Frequenting Unusual Places At Abnormal Hours
+**Suspicious Activities Can Be In The Following Form:**  
+1) Unknown locations not found on map
+2) Gathering of two or more individuals at the same location at the same hour for extended periods
+2) Individuals frequenting unusual places at abnormal hours
 
-#### 5.5.1 Presence of Anonymous Locations (shown as black dots on map)
+#### 5.5.1 Presence of Anonymous Locations (shown as black dots on map)  
+
+These are locations where there were multiple instances of GPS points remaining stationary for more than 10 mins. These unknown locations do not conform to known locations on the furnished map pic.
 
 ```{r anonymous-locations}
 
@@ -1099,7 +1091,7 @@ Q5.5.1
 
 ```
 
-#### 5.5.2 Suspicious Monitoring of the Key Officials' Homes (by Bodrogi, Vann, Osvaldo and Mies)
+#### 5.5.2 Suspicious Monitoring of Key Officials' Homes (by Bodrogi, Vann, Osvaldo and Mies)
 
 Showcasing only residential points, Bodrogi (ID: 15, black line), Vann (ID: 16, blue line), Osvaldo (ID:21, purple line) and Mies (ID:24, red line) were seen patroling key executives' houses located near the centre area. (Hover over the lines and points to see the ID and owner of each residence)
 
@@ -1138,22 +1130,120 @@ Q5.5.2
 
 ```
 
-#### 5.5.3 Suspicious Gas Station Activities
+#### 5.5.3 Weird Off-Road Driving by Isande Borrasca
+It begs the question as to the main cause of Isande's wayward driving. Though it's highly unlikely that he veers from side to side throughout his drive, it suggests that his GPS device is either faulty or that it has been tampered to cover his tracks. Relooking at the places he visited, there is little to suggest that he might be a risky character. But nonetheless, his wayward movements remain suspicious.
 
-#### 5.5.4 Suspicious Activity By Alcazar
+```{r weird-driving-isande}
 
-#### 5.5.5 Party on Jan 10 evening
+tmap_mode("view")
 
-#### 5.5.6 Kronos Mart Midnight
+Q5.5.3 <- tm_shape(sea_poly) +
+  tm_polygons(col="lightblue") +
+tm_shape(Kronos_sf_small) +
+  tm_polygons(col = "beige") +
+tm_shape(Abila_st_buffer) +
+  tm_polygons(col = "white") +
+tm_shape(gps_path %>% filter(id==28)) + # Extract Isande's path
+  tm_lines(col = "black",
+           lty = 1,
+           id = "RoleNName") +
+tm_shape(spots_median_sf) +
+  tm_dots(col = "Location.Type",
+          id = "Location", # Bold in group
+          popup.vars = "Location Type:" =="Location.Type",
+          size = 0.2)
 
-#### 5.5.7 Visiting Kronos Capitol
+Q5.5.3
 
-#### 5.5.8 Bertrand Ovan driving a circle near midnight on 11th Jan 2014
+```
 
+#### 5.5.4 Possible Suspicious Gathering At Kronos Capital On 18th and 19th Jan
+On 18th Jan, Bodrogi (ID: 15, black line) met Nubarron (ID: 22, blue line) at Kronos Capital in the afternoon. This location was visited in the morning by Nubarron, as well as Vann (ID: 34, red line) in the evening. Herrero (ID:25, green line) was also stationary for approx. 24 hours in this location on 19th Jan.
 
-#### 5.5.9 President only started appearing late in the period
+```{r kronos-capital}
 
-#### 5.5.10 Maybe calculate speed and distance
+tmap_mode("view")
+
+Q5.5.4 <- tm_shape(sea_poly) +
+  tm_polygons(col="lightblue") +
+tm_shape(Kronos_sf_small) +
+  tm_polygons(col = "beige") +
+tm_shape(Abila_st_buffer) +
+  tm_polygons(col = "white") +
+tm_shape(gps_path %>% filter(id==15 & day==18)) + # Extract Bodrogi's path on 18th Jan
+  tm_lines(col = "black",
+           lty = 1,
+           id = "RoleNName") +
+tm_shape(gps_path %>% filter(id==22 & day==18)) + # Extract Nubarron's path on 18th Jan
+  tm_lines(col = "blue",
+           lty = 1,
+           id = "RoleNName") +  
+tm_shape(gps_path %>% filter(id==34 & day==18)) + # Extract Vann's path on 18th Jan
+  tm_lines(col = "red",
+           lty = 1,
+           id = "RoleNName") +
+tm_shape(gps_path %>% filter(id==25 & day==19)) + # Extract Herrero's path on 19th Jan
+  tm_lines(col = "green",
+           lty = 1,
+           id = "RoleNName") +  
+tm_shape(spots_median_sf %>%
+           filter(Location == "Kronos Capital")) +
+  tm_dots(col = "green",
+          size = 0.2)
+
+Q5.5.4
+
+```
+
+#### 5.5.5 Large Gathering At Engineer Lar's Home on Jan 10 Late Evening  
+
+A large gathering of 13 individuals, from both the IT and Geological department, was spotted in the late evening on 10th Jan.
+
+```{r party-at-engineer-lars-home}
+
+tmap_mode("view")
+
+Q5.5.5 <- tm_shape(sea_poly) +
+  tm_polygons(col="lightblue") +
+tm_shape(Kronos_sf_small) +
+  tm_polygons(col = "beige") +
+tm_shape(Abila_st_buffer) +
+  tm_polygons(col = "white") +
+
+# Extract a multitude of visitors to Lars' Home on Jan 10th Late Evening
+tm_shape(gps_path %>% 
+           filter(day==10 & id==1  |
+                            id==2  |
+                            id==5  |
+                            id==6  |
+                            id==7  |
+                            id==8  |
+                            id==9  |
+                            id==11 |
+                            id==14 |
+                            id==18 |
+                            id==19 |
+                            id==25 |
+                            id==33)) +
+  tm_lines(col = "black",
+           lty = 1,
+           id = "RoleNName") +  
+tm_shape(spots_median_sf %>%
+           filter(Location == "2 Engineer Lars's Home")) +
+  tm_dots(col = "green",
+          size = 0.2)
+
+Q5.5.5
+
+```
+
+#### 5.5.6 Kronos Mart Midnight (low priority)
+
+#### 5.5.7 Suspicious Activity By Nils Calixto (low priority)
+
+#### 5.5.8 Bertrand Ovan driving a circle near midnight on 11th Jan 2014 (low priority)
+
+#### 5.5.9 President only started appearing late in the period (low priority)
 
 #### 5.5.99 Provide your answer and corresponding images here.
 
