@@ -23,7 +23,7 @@ knitr::opts_chunk$set(fig.retina = 3,
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(ggplot2, tidyverse, readr, grid, plotly, writexl, qwraps2, 
                reshape2, scales, sf, raster, tmap, clock, forcats, readxl,
-               lubridate, fuzzyjoin, ggridges, GGally)
+               lubridate, fuzzyjoin, ggridges, GGally, kableExtra)
 
 ```
 
@@ -133,12 +133,12 @@ gps$id <- as_factor(gps$id) # Change to factor data type
 
 gps_sf <- st_as_sf(gps, coords = c("long", "lat"), crs = 4326) # Changing into a shapefile
 
-gps_path1 <- gps_sf %>%
+gps_path1 <- gps_sf %>% # Grouping gps lines according to id and day of month
   group_by(id, day) %>%
   summarize(m = mean(Timestamp), 
             do_union=FALSE, 
             .groups = "drop") %>%
-  st_cast("LINESTRING")
+  st_cast("LINESTRING") # Change GPS into a line
 
 tmap_mode("view")
 Q2.2_mc2 <- tm_shape(mc2) +
@@ -225,10 +225,6 @@ car$RoleNName <- paste(car$CarID, car$CurrentEmploymentTitle, car$FullName, sep 
 
 #--------------- Cleaning GPS data ---------------
 
-#gps$id <- as_factor(gps$id) # Change the column format to nominal format
-#gps$Timestamp <- date_time_parse(gps$Timestamp,
-#                zone = "UTC",
-#                format = "%m/%d/%Y %H:%M:%S") # Readjust loyalty timestamp
 gps$date <- as_date(gps$Timestamp) # Create a separate column just for dates in the gps data
 gps$hour <- hour(gps$Timestamp) # Create a separate column just for hours in the gps data
 gps$period <- case_when( # Segment hour into 5 separate periods
@@ -245,7 +241,6 @@ gps$period <- factor(gps$period, # Order periods accordingly
                                 "Late Evening 9pm to 11.59pm",
                                 "Late Night 12mn to 5.59am"))
 gps$dayofmonth <- day(gps$Timestamp) # Extract day of month from timestamp in a new column
-#gps$day <- as_factor(get_day(gps$Timestamp)) # Change the column format to nominal format
 gps$weekday <- wday(gps$Timestamp, label = TRUE) # Extract day of week from timestamp in a new column
 
 ```
@@ -274,10 +269,10 @@ cc_loyalty_duplicate_cc <- cc_loyalty_1 %>% # Extract duplicates in cc data
 
 cc_loyalty_duplicate_loyalty <- subset(cc_loyalty_1,loyaltynum == "L6267" | loyaltynum == "L3288") # Extract duplicates in loyalty data
 
-cc_loyalty_1$type <- "unique"
-cc_loyalty_1[which(cc_loyalty_1$last4ccnum == cc_loyalty_duplicate_cc$last4ccnum),4] <- "duplicate"
+cc_loyalty_1$type <- "unique" # Creating a new type column with 'unique' as value
+cc_loyalty_1[which(cc_loyalty_1$last4ccnum == cc_loyalty_duplicate_cc$last4ccnum),4] <- "duplicate" # Identifying duplicate in type column
 cc_loyalty_1[which(cc_loyalty_1$loyaltynum ==  "L6267" |
-                   cc_loyalty_1$loyaltynum ==  "L3288"),4] <- "duplicate"
+                   cc_loyalty_1$loyaltynum ==  "L3288"),4] <- "duplicate" # Identifying duplicate in type column
 
 ```
 
@@ -522,6 +517,7 @@ spots_median <- spots_median %>% # Add additional column to classify locations i
                     "U-Pump") ~ "Transport",
     ))
 spots_median_sf <- st_as_sf(spots_median, coords = c("long.median", "lat.median"), crs = 4326) # Changing into a shapefile
+
 ```
 
 ### 4.4	Create Custom Map
@@ -530,13 +526,14 @@ Using the identified spots, we will create our custom map using the tmap package
 ```{r tmap-visualisation, echo = T, message = FALSE}
 
 Abila_st_union <- st_union(Abila_st) # Dissolve Abila road network
-Abila_st_proj <- st_transform(Abila_st_union, crs = 3857)
+Abila_st_proj <- st_transform(Abila_st_union, crs = 3857) # Transform to necessary projection
 Abila_st_buffer <- st_buffer(Abila_st_proj, dist = 25, nQuadSegs = 5, ) # Create a buffer around the dissolved Abila road network
 
 gps_path <- gps_sf %>% # Creating a movement path
   group_by(id, day) %>%
-  summarize(m = mean(Timestamp), 
-            do_union=FALSE) %>%
+    summarize(m = mean(Timestamp), 
+              do_union=FALSE, 
+              .groups = "drop") %>%
   left_join(dplyr::select(car,CarID,RoleNName), by = c("id" = "CarID")) %>% #Add in RoleNName column
   ungroup() %>%
   st_cast("LINESTRING")
@@ -591,9 +588,10 @@ Food and beverage places, such as Brew've Been Served, Guy's Gyros, Hallowed Gro
 ```{r calendar-heatmap}
 
 cc_calendar <- cc %>% 
-  count(dayofmonth, location)
-cc_calendar$dayofmonth <- as_factor(cc_calendar$dayofmonth)
+  count(dayofmonth, location) # Group and tally by day of month and location
+cc_calendar$dayofmonth <- as_factor(cc_calendar$dayofmonth) # CHange day of month to factor type
 
+# Create calendar heatmap using ggplot and geom_tile
 Q5.1.1 <- ggplot(complete(cc_calendar, dayofmonth, location), aes(x = dayofmonth, y = location)) + 
   geom_tile(aes(fill = n), color = "white", size = 0.1) +
   scale_fill_gradient(low = "light grey", high = "black", na.value = "light grey") +
@@ -623,30 +621,31 @@ The txn dates of Kronos Mart differ by exactly one day, comparing either side of
 ```{r kronos-mart}
 
 Q5.1.2_cc <- cc %>%
-  filter(location == "Kronos Mart") %>%
-  dplyr::select(dayofmonth, price, location) %>%
-  group_by(dayofmonth) %>%
-    summarise(cc_data = sum(price), .groups = "drop") %>%
+  filter(location == "Kronos Mart") %>% # Filter out only Kronos Mart cc txns
+  dplyr::select(dayofmonth, price, location) %>% # Select only three columns
+  group_by(dayofmonth) %>% # Group by day of month
+    summarise(cc_data = sum(price), .groups = "drop") %>% # Create cc_data column which sums prices
   ungroup()
 
-Q5.1.2_loyalty <- loyalty %>%
+Q5.1.2_loyalty <- loyalty %>% # Same methodology as above but done on loyalty data
   filter(location == "Kronos Mart") %>%
   dplyr::select(dayofmonth, price, location) %>%
   group_by(dayofmonth) %>%
   summarise(loyalty_data = sum(price), .groups = "drop") %>%
   ungroup()
 
-Q5.1.2_combined <- data.frame(dayofmonth = c(6:19))
-Q5.1.2_combined$dayofmonth <- as_factor(Q5.1.2_combined$dayofmonth)
-Q5.1.2_combined <- Q5.1.2_combined %>%
+Q5.1.2_combined <- data.frame(dayofmonth = c(6:19)) # Create new df with the 14 days
+Q5.1.2_combined$dayofmonth <- as_factor(Q5.1.2_combined$dayofmonth) # Change to factor type
+Q5.1.2_combined <- Q5.1.2_combined %>% # Merge df to manipulated cc and loyalty data
   left_join(Q5.1.2_cc, by = "dayofmonth") %>%
   left_join(Q5.1.2_loyalty, by = "dayofmonth")
 
-Q5.1.2_combined$cc_data[is.na(Q5.1.2_combined$cc_data)] <- 0
-Q5.1.2_combined$loyalty_data[is.na(Q5.1.2_combined$loyalty_data)] <- 0
+Q5.1.2_combined$cc_data[is.na(Q5.1.2_combined$cc_data)] <- 0 # Replace NA with 0
+Q5.1.2_combined$loyalty_data[is.na(Q5.1.2_combined$loyalty_data)] <- 0 # Replace NA with 0
 
-Q5.1.2_combined <-melt(Q5.1.2_combined, id.vars = "dayofmonth", variable.name = "source")
+Q5.1.2_combined <-melt(Q5.1.2_combined, id.vars = "dayofmonth", variable.name = "source") # Change from wide to long format
 
+# Create area graph on both cc and loyalty data
 Q5.1.2 <- ggplot(Q5.1.2_combined, aes(dayofmonth, value, group = source)) +
   geom_area(aes(colour = source, fill = source),
             size = 1) +
@@ -675,6 +674,7 @@ Ascertaining the location of unknown locations such as Hippokampos and Abila Zac
 
 ```{r hippokampos}
 
+# Create ridgeline plot to see activity by location across the hours of the day
 Q5.1.3 <- ggplot(cc, 
                  aes(x = hour, 
                      y = location, 
@@ -698,25 +698,26 @@ Coffee chains usually open for longer than just the three hours we see in the da
 
 ```{r coffee-hour}
 
-Q5.1.4_cc <- cc %>%
+Q5.1.4_cc <- cc %>% # Merge cc with location type data from spots median
   left_join(dplyr::select(spots_median,Location, Location.Type), by = c("location" = "Location")) %>%
-  filter(Location.Type == "Coffee Cafe") %>%
+  filter(Location.Type == "Coffee Cafe") %>% # Filter only Coffee Cafe location type
   dplyr::select(location, hour, price) %>%
   group_by(location, hour) %>%
   summarise(coffee_money = sum(price), .groups = "drop") %>%
   ungroup() %>%
-  dcast(hour ~ location, value.var = "coffee_money")
+  dcast(hour ~ location, value.var = "coffee_money") # Change from long to wide format
 
 
-Q5.1.4_cc$hour <- as_factor(Q5.1.4_cc$hour)
+Q5.1.4_cc$hour <- as_factor(Q5.1.4_cc$hour) # Change to factor type
 
-Q5.1.4_combined <- data.frame(hour = c(1:24))
-Q5.1.4_combined$hour <- as_factor(Q5.1.4_combined$hour)
-Q5.1.4_combined <- Q5.1.4_combined %>%
+Q5.1.4_combined <- data.frame(hour = c(1:24)) # Create new dataframe with hours
+Q5.1.4_combined$hour <- as_factor(Q5.1.4_combined$hour) # Change to factor type
+Q5.1.4_combined <- Q5.1.4_combined %>% 
   left_join(Q5.1.4_cc, by = "hour")
 
-Q5.1.4_combined <-melt(Q5.1.4_combined, id.vars = "hour", variable.name = "coffee_place")
+Q5.1.4_combined <-melt(Q5.1.4_combined, id.vars = "hour", variable.name = "coffee_place") # Change from wide to long format
 
+# Create a clock-like visualisation using ggplot
 Q5.1.4 <- ggplot(Q5.1.4_combined, aes(hour, value, fill = coffee_place)) +
   geom_bar(stat = "identity") +
   coord_polar(theta = "x") +
@@ -743,8 +744,8 @@ There were no credit card transactions on weekends before 12 noon. This is odd, 
 ```{r cc-no-vehicles-on-weekends-before-midday}
 
 Q5.1.5_weekday <- data.frame("weekday" = unique(cc[c('weekday')])) %>%
-  slice(rep(1:n(), each = 5))
-Q5.1.5_period <- data.frame("period" = unique(cc[c('period')]))
+  slice(rep(1:n(), each = 5)) # Create new data frame based on unique values in cc
+Q5.1.5_period <- data.frame("period" = unique(cc[c('period')])) # Create new data frame based on unique values in loyalty
 Q5.1.5_period$period <- factor(Q5.1.5_period$period, 
                                 levels = c("Morning 6am to 11.59am", 
                                            "Afternoon 12noon to 5.59pm", 
@@ -856,6 +857,7 @@ Our original dataset contained 55 credit card numbers and 54 loyalty card number
 
 ```{r cc-loyalty-match, fig.height=9}
 
+# Create new df for labeling
 Q5.1.6_label_cc <- data.frame("id" = 1:54,
                               "code" = as_factor(cc_loyalty_1$last4ccnum))
 Q5.1.6_label_loyalty <- data.frame("id" = 55:108,
@@ -865,6 +867,7 @@ Q5.1.6_label <- bind_rows(Q5.1.6_label_cc,
                       Q5.1.6_label_loyalty)
 Q5.1.6_label <- subset(Q5.1.6_label, select = -1 )
 
+# Create parallel coordinates plot showing relationship between cc and loyalty. Non-unique matches are visualised in black, whereas 1-to-1 matches are shown in grey. Fig.height changed to 9 to show full height of parallel coordinates plot.
 Q5.1.6 <- ggparcoord(cc_loyalty_1,
                      columns = 1:2,
                      groupColumn = 4,
@@ -895,6 +898,7 @@ In section 5.1.2 earlier, we mentioned of the possibility of transactional data 
 
 ```{r kronos-mart-2, fig.height=4}
 
+# Create new df of gps data specifically on Kronos Mart's tracking
 Q5.2.1_gps <- tibble("dayofmonth" = c(6:19)) %>%
                   left_join(spots %>%
                     group_by(Location, dayofmonth) %>%
@@ -904,6 +908,7 @@ Q5.2.1_gps <- tibble("dayofmonth" = c(6:19)) %>%
                     mutate(n2=n) %>%
                     replace_na(list(n=0))
 
+# Showcase Kronos Mart's GPS activity via a geom-area visualisation
 Q5.2.1 <- ggplot(Q5.2.1_gps, 
                   aes(x = dayofmonth, y = n)) +
   geom_area(size = 1) +
@@ -933,6 +938,7 @@ Visitations to unknown locations such as Hippokampos and Abila Zacharo during no
 
 ```{r gps-hippokampos}
 
+# Create ridgeline plot of GPS locations by hours of day, and excluding Home, Anonymous locations and Gastech.
 Q5.2.2 <- ggplot(spots %>%
                    filter(!grepl("Home|Anonymous|GasTech", Location)), 
                  aes(x = hour, 
@@ -957,16 +963,13 @@ GPS data shows restricted activity coffee chain activity to just two hours withi
 
 ```{r gps-coffee-hour}
 
+# Merge spots data with Location Type and change from long to wide format
 Q5.2.3_spots <- spots %>%
   left_join(dplyr::select(spots_median,Location, Location.Type), by = c("Location" = "Location")) %>%
   filter(Location.Type == "Coffee Cafe") %>%
-#  dplyr::select(Location, hour) %>%
   count(Location, hour) %>%
-#  group_by(location, hour) %>%
-#  summarise(coffee_money = sum(price), .groups = "drop") %>%
   ungroup() %>%
   dcast(hour ~ Location,)
-
 
 Q5.2.3_spots$hour <- as_factor(Q5.2.3_spots$hour)
 
@@ -1114,15 +1117,19 @@ Q5.2.4
 Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
 
 #### 5.3.1	Combining Both Credit Card and Spots Data Using Fuzzy Join (OSA)
-We will find matching IDs between the credit card and spots data. Spots data are basically GPS points that have remained stationary for more than 10 mins. The main columns of comparison are the day of month, location and hour. Identical rows are determined based on a max of 1 character edit. From here, we identify the match, by counting the max number of matching rows between credit card and spots data.
+We will find matching IDs between the credit card and spots data. Spots data are basically GPS points that have remained stationary for more than 10 mins. The main columns of comparison are the day of month, location and hour, and identical rows are determined as a result. From here, we identify the match, by counting the max number of matching rows between credit card and spots data.
 
-```{r fuzzyjoin-innerjoin-stringdist-cc-spots, eval=FALSE}
+These matching is on a best match basis, and uncertainties lie in the following areas:  
+- Spots data may show a visit to that location, but no purchase may have been made  
+- Discrepancy in the credit card data's date or hour may cause ill-matches  
 
-cc_spots <- cc %>% # Create a new df that shows matches with a max distance difference of 1
+```{r fuzzyjoin-innerjoin-stringdist-cc-spots}
+
+cc_spots <- cc %>% # Create a new df that shows matches with a max distance difference of 0
   stringdist_inner_join(spots, 
                         by = c("concat_cc_spots" = "concat_spots_cc"),
                         method = "osa",
-                        max_dist = 1,
+                        max_dist = 0,
                         distance_col = "distance")
 
 cc_spots_1 <- cc_spots %>% # Isolate best matching cc and spots with more than 2 counts
@@ -1132,7 +1139,7 @@ cc_spots_1 <- cc_spots %>% # Isolate best matching cc and spots with more than 2
   arrange(RoleNName,-n) %>% # Arrange the highest to lowest count in each group
   ungroup()
 
-cc_spots_1[1,3] <- "matches"
+colnames(cc_spots_1)[colnames(cc_spots_1)=="n"] = "matches" # Rename last column to matches
 
 cc_summary <- cc %>%
   group_by(last4ccnum) %>%
@@ -1141,7 +1148,11 @@ cc_summary <- cc %>%
 
 cc_spots_1 <- cc_spots_1[!duplicated(cc_spots_1$RoleNName),] # Isolating 1 cc to 1 driver
 
-cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five duplicates
+#cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five duplicates
+
+knitr::kable(cc_spots_1, caption = "Matched Credit Card to ID And Name") %>%
+  kable_styling(bootstrap_options = "striped", 
+                full_width = F) # Output matched table
 
 #write_csv(cc_spots_1,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_spots_1.csv")
 
@@ -1153,8 +1164,6 @@ cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five d
 #cc_loyalty_duplicate_loyalty <- subset(cc_loyalty_1,loyaltynum == "L6267" | loyaltynum == "L3288") # Extract duplicates in loyalty data
 
 ```
-
-#### 5.3.99 Provide your answer and corresponding images here.
 
 ### 5.4 Question 4 And Its Answers
 
@@ -1296,8 +1305,6 @@ tm_shape(spots_median_sf) +
 Q5.4.4
 
 ```
-
-#### 5.4.99 Provide your answer and corresponding images here.
 
 ### 5.5 Question 5 And Its Answers
 
@@ -1485,16 +1492,6 @@ Q5.5.5
 
 ```
 
-#### 5.5.6 Kronos Mart Midnight (low priority)
-
-#### 5.5.7 Suspicious Activity By Nils Calixto (low priority)
-
-#### 5.5.8 Bertrand Ovan driving a circle near midnight on 11th Jan 2014 (low priority)
-
-#### 5.5.9 President only started appearing late in the period (low priority)
-
-#### 5.5.99 Provide your answer and corresponding images here.
-
 ### 5.6 Question 6 And Its Answers
 
 If you solved this mini-challenge in 2014, how did you approach it differently this year?
@@ -1503,301 +1500,4 @@ If you solved this mini-challenge in 2014, how did you approach it differently t
 We did not attempt this mini-challenge in 2014.
 
 #-----------------------------------------------------
-
-
-```{r suspicious-home-monitoring-draft, eval = FALSE}
-
-tmap_mode("view")
-Q5.5.2 <- tm_shape(sea_poly) +
-  tm_polygons(col="lightblue") +
-tm_shape(Kronos_sf_small) +
-  tm_polygons(col = "beige") +
-tm_shape(Abila_st_buffer) +
-  tm_polygons(col = "white") +
-tm_shape(gps_path %>% filter(id==15)) + # Extract Bodrogi's path
-  tm_lines(col = "black",
-           lty = 1,
-           id = ) +
-tm_shape(gps_path %>% filter(id==16)) + # Extract Vann's path
-  tm_lines(col = "blue",
-           lty = 1) +  
-tm_shape(gps_path %>% filter(id==21)) + # Extract Osvaldo's path
-  tm_lines(col = "pink",
-           lty = 1) +  
-  tm_shape(gps_path %>% filter(id==24)) + # Extract Mies's path
-  tm_lines(col = "red",
-           lty = 1) +  
-tm_shape(spots_median_sf %>%
-           filter(Location.Type == "Residential")) +
-  tm_dots(col = "green",
-          size = 0.2)
-
-Q5.5.2    
-
-
-
-#  tm_dots(col = "Location.Type",
-#          id = "Location", # Bold in group
-#          popup.vars = "Location Type:" =="Location.Type",
-#          size = 0.2)
-
-```
-
-Testing the use of a static image as background and showcasing the gps data on it using ggplot
-
-```{r}
-
-# Mapping map and gps together specifically for CarID #1
-#mapping <- ggplot(gps_name %>%
-#                    filter(id == "1"),
-#                  aes(long, lat)) +
-#  annotation_custom(rasterGrob(mc2,
-#    width = unit(1, "npc"),
-#    height = unit(1,"npc")),
-#  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + #Original searching
-#  xmin = 24.82419, xmax = 24.90976, ymin = 36.04499, ymax = 36.09543) + #Prof's raster extraction
-#  geom_point(size = 0.1) + 
-#  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
-#  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
-#                     panel.grid.major = element_blank(), 
-#                     panel.grid.minor = element_blank(), 
-#                     axis.line = element_line(colour = "black"))  
-#  + transition_time(Timestamp) +
-#  labs(title = "Date:{frame_time}")
-
-#mapping
-
-```
-
-
-
-
-
-```{r include=FALSE, eval=FALSE}
-m <- tm_shape(mc2) +
-  tm_rgb(mc2, r = 1,g = 2,b = 3,
-       alpha = NA,
-       saturation = 1,
-       interpolate = TRUE,
-       max.value = 255) 
-
-+
-  tm_shape(gps_path) +
-  tm_lines() +
-  tm_facets(along = "id")
-tmap_animation(m, 
-               filename = "gif/drivers.gif",
-               delay=100)
-```
-
-
-
-Past work:
-
-We will use [fuzzy string matching](https://www.r-bloggers.com/2015/02/fuzzy-string-matching-a-survival-skill-to-tackle-unstructured-information/) using [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) which is available natively in R's adist utilities package.
-
-```{r levenshtein-distance-matching-cc-loyalty, eval = FALSE}
-
-dist.concat <- adist(cc$concat,loyalty$concat, partial = TRUE, ignore.case = TRUE) #Creates a matrix with the Standard Levenshtein distance between both newly created concat columns
-min.concat <- apply(dist.concat, 1, min) #Extract pairs with minimum distance
-
-match.s1.s2 <- NULL
-for (i in 1:nrow(dist.concat))
-{
-  s2.i <- match(min.concat[i], dist.concat[i,])
-  s1.i <- i
-  match.s1.s2 <- rbind(data.frame(loyalty.i=s2.i,
-                                    cc.i=s1.i,
-                                    loyalty_concat=loyalty[s2.i,]$concat,
-                                    cc_concat=cc[s1.i,]$concat,
-                                    adist=min.concat[i]),match.s1.s2)
-  }
-    
-cc_loyalty <- match.s1.s2 %>%
-  left_join(dplyr::select(cc, last4ccnum, ID), by = c("cc.i" = "ID")) %>% #Add in CC num column
-  left_join(dplyr::select(loyalty, loyaltynum, ID), by = c("loyalty.i" = "ID")) #Add in loyalty card num column
-
-```
-
-#### 4.1.2 Extracting Best Matching Pairs     
-Let's now extract the matching credit card-loyalty pairs according to 80% matching of their comparative distance.
-
-```{r extract-cc-loyalty-pairs, eval = FALSE}
-
-cc_loyalty_unique <- dcast(cc_loyalty, last4ccnum + loyaltynum ~ adist) #Long to wide by transposing adist
-cc_loyalty_unique$Total <- rowSums(cc_loyalty_unique[,c("0","1","2","3","4","5","11")]) #Sum all rows
-cc_loyalty_unique$Sum01 <- rowSums(cc_loyalty_unique[,c("0","1")]) #Sum only column 1 and 2
-cc_loyalty_unique$MatchPctTotal <- percent(cc_loyalty_unique[,3] / cc_loyalty_unique$Total) #Calc % of perfect (0) matches against Total
-cc_loyalty_unique$MatchPct01 <- percent(cc_loyalty_unique$Sum01 / cc_loyalty_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
-
-cc_loyalty_unique_80 <- cc_loyalty_unique %>% 
-  filter (MatchPct01 >= "80.00%")
-n_distinct(cc_loyalty_unique_80$last4ccnum)
-n_distinct(cc_loyalty_unique_80$loyaltynum)
-
-write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
-
-```
-
-
-
-```{r levenshtein-distance-matching-cc-GPS, eval = FALSE}
-
-dist.concat2 <- adist(cc$concat2,spots$concat, partial = TRUE, ignore.case = TRUE) #Create a matrix with the Standard Levenshtein distance between both newly created concat columns
-min.concat2 <- apply(dist.concat2, 1, min) #Extract pairs with minimum distance
-
-match.s3.s4 <- NULL
-for (j in 1:nrow(dist.concat2))
-{
-  s4.j <- match(min.concat2[j], dist.concat2[j,])
-  s3.j <- j
-  match.s3.s4 <- rbind(data.frame(spots.j=s4.j,
-                                    cc.j=s3.j,
-                                    spots_concat=spots[s4.j,]$concat,
-                                    cc_concat2=cc[s3.j,]$concat2,
-                                    adist=min.concat2[j]),match.s3.s4)
-  }
-    
-cc_spots <- match.s3.s4 %>%
-  left_join(dplyr::select(cc, last4ccnum, ID), by = c("cc.j" = "ID")) %>% #Add in CC num column
-  left_join(dplyr::select(spots, RoleNName, No), by = c("spots.j" = "No")) #Add in Spots num column
-
-```
-
-
-
-```{r extract-cc-spots-pairs, eval = FALSE}
-
-cc_spots_unique <- dcast(cc_spots, last4ccnum + RoleNName ~ adist) #Long to wide by transposing adist
-cc_spots_unique$Total <- rowSums(cc_spots_unique[,c("0","1","2","3","7","8","9","10","11","12","13","14","15","16","17","18","19","21")]) #Sum all rows
-cc_spots_unique$Sum01 <- rowSums(cc_spots_unique[,c("0","1")]) #Sum only column 1 and 2
-cc_spots_unique$MatchPctTotal <- percent(cc_spots_unique[,3] / cc_spots_unique$Total) #Calc % of perfect (0) matches against Total
-cc_spots_unique$MatchPct01 <- percent(cc_spots_unique$Sum01 / cc_spots_unique$Total) #Calc % of perfect (0) and almost perfect (0) matches against Total
-
-cc_spots_unique_80 <- cc_spots_unique %>% 
-  filter (MatchPct01 >= "80.00%")
-n_distinct(cc_spots_unique_80$last4ccnum)
-n_distinct(cc_spots_unique_80$RoleNName)
-
-write_csv(cc_loyalty_unique_80,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_unique_80.csv")
-
-```
-
-Using fuzzyjoin (use Dcast median values)
-
-```{r fuzzyjoin, eval=FALSE}
-
-spots_cc <- stringdist_join(cc,spots,
-                       by = "concat_cc_spots",
-                       mode = "left",
-                       method = "jw",
-                       ignore_case = TRUE,
-                       max_dist = 0.2,
-                       distance_col = "dist")
-
-spots_cc_summary <- spots_cc %>%
-  group_by(concat_cc_spots.x) %>%
-  slice_min (order_by = dist, n = 1) %>%
-  arrange (desc(dist)) %>%
-  filter(dist < 0.1) %>%
-  ungroup()
-
-write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_cc.csv")
-
-write_csv(spots_cc, "C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\spots_cc_summary.csv")
-
-```
-
-
-With this, we then used the spots data above to find the coordinates nearest to these locations. We recorded the coordinates of each location in an Excel file, and would now bring it into R.
-
-```{r spot-locations, eval = FALSE}
-
-spot_list <- read_excel("data/spots and list.xlsx", sheet = "LIST") #Import Excel file
-
-  
-
-
-```
-
-Change to GPS lines
-
-```{r GPS-lines, eval = FALSE}
-
-#gps <- readr::read_csv("data/gps.csv") # Add gps data
-#gps$Timestamp <- date_time_parse(gps$Timestamp,
-#                zone = "",
-#                format = "%m/%d/%Y %H:%M:%S")
-
-
-
-  
-#spots_sf <- st_as_sf(spots, coords = c("long", "lat"), # Changing into a shapefile
-#    crs = 4326, agr = "constant")
-
-
-
-#spots_l <- spots[,4:5] # Extract only lat long
-#spots_ll <- spots_l %>% slice(rep(1:n(), each = 3648))
-#spots_ll$No <- rep(1:3648, times = 3648)
-#spots_l$Noo <- rep(1:3648, times = 1)
-#spots_ll <- left_join(spots_ll,spots_l, by = c("No" = "Noo"))
-#spots_ll$Diff <- sqrt((spots_ll$lat.x-spots_ll$lat.y)^2+(spots_ll$long.x-spots_ll$long.y)^2)
-
-#n_perc(spots_ll$Diff < 0.05)
-
-#write_csv(spots,"C:\\Users\\syeda\\OneDrive\\Desktop\\spots.csv")
-
-# Mapping map and gps together specifically for CarID #1
-#mapping_spots <- ggplot(spots, aes(long, lat)) +
-#  annotation_custom(rasterGrob(mc2,
-#    width = unit(1, "npc"),
-#    height = unit(1,"npc")),
-#  xmin = 24.8244, xmax = 24.9096, ymin = 36.0453, ymax = 36.0952) + 
-#  geom_point(size = 0.1) + 
-#  coord_fixed(xlim = c(24.8244, 24.9096), ylim = c(36.0453, 36.0952)) + # Fixing the scales regardless of filtering of points
-#  theme_bw() + theme(panel.border = element_blank(), # Remove background and grids and reformat scales and axis
-#                     panel.grid.major = element_blank(), 
-#                     panel.grid.minor = element_blank(), 
-#                     axis.line = element_line(colour = "black"))  
-
-#mapping_spots
-
-```
-
-
-```{r calendar-ggplot-one, eval = FALSE}
-
-cc_calendar_one <- cc %>%
-  filter(location == "Katerina's Cafe") %>%
-  count(date,hour)
-  
-cc_calendar_ggplot_one <-  ggplot(complete(cc_calendar_one, date, hour), 
-    aes(x = date, y = hour)) + 
-  geom_tile(aes(fill = n), color = "white", size = 0.1) +
-  scale_fill_gradient(low = "light grey", high = "black", na.value = "light grey") +
-  scale_x_date(date_labels = "%a \n %d %b", 
-               date_breaks = "1 day") +
-  scale_y_reverse() +
-  labs(title = paste(loc1,"Visit Frequency By Date And Hour"),
-       fill = "Frequency \n Of Visit") +
-  theme_bw() +
-  theme(plot.title = element_text(hjust=0.5),
-        panel.border = element_blank(), 
-        panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank(),
-        axis.title.x = element_blank(),
-        axis.title.y = element_blank())
-
-cc_calendar_ggplot_one
-
-```
-
-### 2.3 Non-Map Visualisations of GPS Data
-
-ABC
-Calendar Heatmap (GPS Points per day) http://visualdata.wustl.edu/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/University%20of%20Buenos%20Aires%20-%20Tralice/
-Parallel Coordinates Graph (Location, Date, Timestamp, Price, Name) https://rpubs.com/tskam/PCP
-Gantt Chart
-Explore Hippokampos RadViz Clock Average Location https://www.cs.umd.edu/hcil/varepository/VAST%20Challenge%202014/challenges/MC2%20-%20Patterns%20of%20Life%20Analysis/entries/Central%20South%20University/
 
