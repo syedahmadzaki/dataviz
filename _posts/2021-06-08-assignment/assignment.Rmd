@@ -292,6 +292,8 @@ gps_name <- gps_name %>% # Create additional column indicating time taken from p
 gps_name$Delta <- as.numeric(gps_name$Delta) # Convert Delta column to numeric format
 gps_name$Delta_Hours <- round(gps_name$Delta / 60 / 60, 1) # Create column to convert Delta seconds into hours with one decimal place
 
+rm(gps) # Remove unused earlier dataset
+
 spots <- gps_name %>% # Filtering out stationary gps coordinates of more than 10 mins
   filter(Delta > 600)
 spots$No <- rep(1:2965, times = 1) # Redo running number in the first column
@@ -529,6 +531,10 @@ Abila_st_union <- st_union(Abila_st) # Dissolve Abila road network
 Abila_st_proj <- st_transform(Abila_st_union, crs = 3857) # Transform to necessary projection
 Abila_st_buffer <- st_buffer(Abila_st_proj, dist = 25, nQuadSegs = 5, ) # Create a buffer around the dissolved Abila road network
 
+rm(Abila_st) # Remove unused earlier dataset
+rm(Abila_st_union) # Remove unused earlier dataset
+rm(Abila_st_proj) # Remove unused earlier dataset
+
 gps_path <- gps_sf %>% # Creating a movement path
   group_by(id, day) %>%
     summarize(m = mean(Timestamp), 
@@ -542,8 +548,12 @@ gps_path <- gps_sf %>% # Creating a movement path
 long.sea <- c(24.91075,24.91075,24.8232,24.8232,24.91075)
 lat.sea <- c(36.09543,36.0445,36.0445,36.09543,36.09543)
 sea <-data.frame(long.sea, lat.sea)
-rm(long.sea)
-rm(lat.sea)
+
+rm(gps_sf) # Remove unused earlier dataset
+rm(long.sea) # Remove unused earlier dataset
+rm(lat.sea) # Remove unused earlier dataset
+rm(car) # Remove unused earlier dataset
+
 sea_sf <- st_as_sf(sea, coords = c("long.sea", "lat.sea"))
 st_crs(sea_sf) <- 4326
 sea_poly<- st_sf(
@@ -551,8 +561,13 @@ sea_poly<- st_sf(
     st_combine(sea_sf$geometry),"POLYGON"
   ))
 
+rm(sea) # Remove unused earlier dataset
+rm(sea_sf) # Remove unused earlier dataset
+
 # Clip a smaller Kronos island around Abila
 Kronos_sf_small <- st_crop(Kronos_sf, c(xmin = 24.8232, xmax = 24.91075, ymin = 36.0445, ymax = 36.09543))
+
+rm(Kronos_sf) # Remove unused earlier dataset
 
 tmap_mode("view")
 
@@ -640,6 +655,9 @@ Q5.1.2_combined <- Q5.1.2_combined %>% # Merge df to manipulated cc and loyalty 
   left_join(Q5.1.2_cc, by = "dayofmonth") %>%
   left_join(Q5.1.2_loyalty, by = "dayofmonth")
 
+rm(Q5.1.2_cc) # Remove unused earlier dataset
+rm(Q5.1.2_loyalty) # Remove unused earlier dataset
+
 Q5.1.2_combined$cc_data[is.na(Q5.1.2_combined$cc_data)] <- 0 # Replace NA with 0
 Q5.1.2_combined$loyalty_data[is.na(Q5.1.2_combined$loyalty_data)] <- 0 # Replace NA with 0
 
@@ -715,6 +733,8 @@ Q5.1.4_combined$hour <- as_factor(Q5.1.4_combined$hour) # Change to factor type
 Q5.1.4_combined <- Q5.1.4_combined %>% 
   left_join(Q5.1.4_cc, by = "hour")
 
+rm(Q5.1.4_cc) # Remove unused earlier dataset
+
 Q5.1.4_combined <-melt(Q5.1.4_combined, id.vars = "hour", variable.name = "coffee_place") # Change from wide to long format
 
 # Create a clock-like visualisation using ggplot
@@ -755,6 +775,9 @@ Q5.1.5_period$period <- factor(Q5.1.5_period$period,
 Q5.1.5_period <- as.data.frame(lapply(Q5.1.5_period,rep,7))
 Q5.1.5_combined <- cbind(Q5.1.5_weekday,Q5.1.5_period)
 
+rm(Q5.1.5_weekday) # Remove unused earlier dataset
+rm(Q5.1.5_period) # Remove unused earlier dataset
+
 Q5.1.5_cc <- cc %>%
   group_by(weekday,period) %>%
   tally() %>%
@@ -793,6 +816,8 @@ Q5.1.5_combined[61,4] <- 35.2
 Q5.1.5_combined[62,4] <- 35.3
 Q5.1.5_combined[63,4] <- 35.4
 
+rm(Q5.1.5_cc) # Remove unused earlier dataset
+
 Q5.1.5_combined <- Q5.1.5_combined %>%
   arrange(id)
 Q5.1.5_combined$id <- seq(1, nrow(Q5.1.5_combined))
@@ -808,6 +833,9 @@ Q5.1.5_number_of_bar <- nrow(Q5.1.5_label)
 Q5.1.5_angle <- 90 - 360 * (Q5.1.5_label$id-0.5) /Q5.1.5_number_of_bar
 Q5.1.5_label$hjust <- ifelse(Q5.1.5_angle < -90, 1, 0)
 Q5.1.5_label$angle <- ifelse(Q5.1.5_angle < -90, Q5.1.5_angle+180, Q5.1.5_angle)
+
+rm(Q5.1.5_angle) # Remove unused earlier dataset
+rm(Q5.1.5_number_of_bar) # Remove unused earlier dataset
 
 Q5.1.5_base <- Q5.1.5_combined %>% 
   group_by(weekday) %>% 
@@ -865,6 +893,10 @@ Q5.1.6_label_loyalty <- data.frame("id" = 55:108,
   
 Q5.1.6_label <- bind_rows(Q5.1.6_label_cc,
                       Q5.1.6_label_loyalty)
+
+rm(Q5.1.6_label_cc) # Remove unused earlier dataset
+rm(Q5.1.6_label_loyalty) # Remove unused earlier dataset
+
 Q5.1.6_label <- subset(Q5.1.6_label, select = -1 )
 
 # Create parallel coordinates plot showing relationship between cc and loyalty. Non-unique matches are visualised in black, whereas 1-to-1 matches are shown in grey. Fig.height changed to 9 to show full height of parallel coordinates plot.
@@ -978,6 +1010,8 @@ Q5.2.3_combined$hour <- as_factor(Q5.2.3_combined$hour)
 Q5.2.3_combined <- Q5.2.3_combined %>%
   left_join(Q5.2.3_spots, by = "hour")
 
+rm(Q5.2.3_spots) # Remove unused earlier dataset
+
 Q5.2.3_combined <-melt(Q5.2.3_combined, id.vars = "hour", variable.name = "coffee_place")
 
 Q5.2.3 <- ggplot(Q5.2.3_combined, aes(hour, value, fill = coffee_place)) +
@@ -1016,7 +1050,10 @@ Q5.2.4_period$period <- factor(Q5.2.4_period$period,
 Q5.2.4_period <- as.data.frame(lapply(Q5.2.4_period,rep,7))
 Q5.2.4_combined <- cbind(Q5.2.4_weekday,Q5.2.4_period)
 
-Q5.2.4_gps <- gps %>%
+rm(Q5.2.4_weekday) # Remove unused earlier dataset
+rm(Q5.2.4_period) # Remove unused earlier dataset
+
+Q5.2.4_gps <- gps_name %>%
   group_by(weekday,period) %>%
   tally() %>%
   ungroup()
@@ -1054,6 +1091,8 @@ Q5.2.4_combined[61,4] <- 35.2
 Q5.2.4_combined[62,4] <- 35.3
 Q5.2.4_combined[63,4] <- 35.4
 
+rm(Q5.2.4_gps) # Remove unused earlier dataset
+
 Q5.2.4_combined <- Q5.2.4_combined %>%
   arrange(id)
 Q5.2.4_combined$id <- seq(1, nrow(Q5.2.4_combined))
@@ -1069,6 +1108,9 @@ Q5.2.4_number_of_bar <- nrow(Q5.2.4_label)
 Q5.2.4_angle <- 90 - 360 * (Q5.2.4_label$id-0.5) /Q5.2.4_number_of_bar
 Q5.2.4_label$hjust <- ifelse(Q5.2.4_angle < -90, 1, 0)
 Q5.2.4_label$angle <- ifelse(Q5.2.4_angle < -90, Q5.2.4_angle+180, Q5.2.4_angle)
+
+rm(Q5.2.4_angle) # Remove unused earlier dataset
+rm(Q5.2.4_number_of_bar) # Remove unused earlier dataset
 
 Q5.2.4_base <- Q5.2.4_combined %>% 
   group_by(weekday) %>% 
@@ -1148,20 +1190,9 @@ cc_summary <- cc %>%
 
 cc_spots_1 <- cc_spots_1[!duplicated(cc_spots_1$RoleNName),] # Isolating 1 cc to 1 driver
 
-#cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five duplicates
-
 knitr::kable(cc_spots_1, caption = "Matched Credit Card to ID And Name") %>%
   kable_styling(bootstrap_options = "striped", 
                 full_width = F) # Output matched table
-
-#write_csv(cc_spots_1,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_spots_1.csv")
-
-#write_csv(cc_loyalty_1,"C:\\Users\\syeda\\OneDrive\\Documents\\SMU Courses\\2021T3 ISSS608 Visual Analytics and Applications\\3. Submissions\\Assignments\\Sandbox\\cc_loyalty_1.csv")
-
-#cc_loyalty_duplicate_cc <- cc_loyalty_1 %>% # Extract duplicates in cc data
-#  filter(cc_loyalty_1$last4ccnum == cc_loyalty_1$last4ccnum[duplicated(cc_loyalty_1$last4ccnum)])
-
-#cc_loyalty_duplicate_loyalty <- subset(cc_loyalty_1,loyaltynum == "L6267" | loyaltynum == "L3288") # Extract duplicates in loyalty data
 
 ```
 
