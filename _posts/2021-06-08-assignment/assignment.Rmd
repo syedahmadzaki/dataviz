@@ -282,7 +282,6 @@ cc_loyalty_1[which(cc_loyalty_1$loyaltynum ==  "L6267" |
 ```
 
 ### 4.2	Combining Both GPS and Car Assignment Data
-#### 4.2.1 Initial Step
 First, we will merge the GPS data with the car assignments. Next, we will isolate GPS points, that have been stationary for at least 10 mins.
 
 ```{r GPS-data-manipulation}
@@ -304,7 +303,7 @@ spots$No <- rep(1:2965, times = 1) # Redo running number in the first column
 
 ```
 
-#### 4.2.2 Identifying Stationary GPS Points
+### 4.3	Identifying Stationary GPS Points
 Next, using the map and other data sources, we identify the locations of each of these stationary GPS points. Through a visual inspection of the map, credit card and loyalty data, we found 66 unique locations.
 
 ```{r identifying-stationary-GPS-points}
@@ -525,7 +524,7 @@ spots_median <- spots_median %>% # Add additional column to classify locations i
 spots_median_sf <- st_as_sf(spots_median, coords = c("long.median", "lat.median"), crs = 4326) # Changing into a shapefile
 ```
 
-#### 4.2.3 Create Custom Map
+### 4.4	Create Custom Map
 Using the identified spots, we will create our custom map using the tmap package, as well as use the Abila road network. 
 
 ```{r tmap-visualisation, echo = T, message = FALSE}
@@ -619,7 +618,7 @@ Q5.1.1
 
 ```
 #### 5.1.2 Kronos Mart's Txns Suggest Tampering
-The txn dates of Kronos Mart differ by exactly one day, comparing either side of the credit card and loyalty data. Investigation needed to ascertain true transaction dates of Kronos Mart's books, perhaps through receipt verification. We will compare the GPS points in section 5.2.2.
+The txn dates of Kronos Mart differ by exactly one day, comparing either side of the credit card and loyalty data. Investigation needed to ascertain true transaction dates of Kronos Mart's books, perhaps through receipt verification. We will compare the GPS points in section 5.2.1.
 
 ```{r kronos-mart}
 
@@ -886,14 +885,13 @@ Q5.1.6 <- ggparcoord(cc_loyalty_1,
 Q5.1.6
 
 ```
-#### 5.1.6 Show Spending Outliers (low priority)
 
 ### 5.2 Question 2 And Its Answers
 
 Add the vehicle data to your analysis of the credit and loyalty card data. How does your assessment of the anomalies in question 1 change based on this new data? What discrepancies between vehicle, credit, and loyalty card data do you find? Please limit your answer to 8 images and 500 words.
 
 #### 5.2.1 GPS Seems To Validate Kronos Mart's Loyalty Txns
-In section 5.1.2 earlier, we mentioned of the possibility of transational data tampering specifically relating to Kronos Mart. Here, using looking at the GPS data, single visits on 9th, 11th, 12th, 13th, 15th, 16th and three visits on 18th suggests that these GPS visits matches more to loyalty data than the credit card data.
+In section 5.1.2 earlier, we mentioned of the possibility of transactional data tampering specifically relating to Kronos Mart. Here, using looking at the GPS data, single visits on 9th, 11th, 12th, 13th, 15th, 16th and three visits on 18th suggests that these GPS visits matches more to loyalty data than the credit card data.
 
 ```{r kronos-mart-2, fig.height=4}
 
@@ -1111,22 +1109,12 @@ Q5.2.4
 ```
 
 
-
-
-#### 5.2.5 Difference in cc and gps logs for President? (low priority)
-
-#### 5.2.6 Axel Calzas does not go to work? (low priority)
-
-#### 5.2.7 Large Distance Gap Between Consecutive GPS Records? (low priority)
-
-#### 5.2.99 Provide your answer and corresponding images here.
-
 ### 5.3 Question 3 And Its Answers
 
 Can you infer the owners of each credit card and loyalty card? What is your evidence? Where are there uncertainties in your method? Where are there uncertainties in the data? Please limit your answer to 8 images and 500 words.
 
 #### 5.3.1	Combining Both Credit Card and Spots Data Using Fuzzy Join (OSA)
-We will find matching IDs between the credit card and spots data. Spots data are basically GPS points that have remained stationary for more than 10 mins. The main columns of comparison are the day of month, location and hour. Identical rows are determined based on a max of 1 character edit. From here, we identify the match, by counting the max number of matchings rows between credit card and spots data.
+We will find matching IDs between the credit card and spots data. Spots data are basically GPS points that have remained stationary for more than 10 mins. The main columns of comparison are the day of month, location and hour. Identical rows are determined based on a max of 1 character edit. From here, we identify the match, by counting the max number of matching rows between credit card and spots data.
 
 ```{r fuzzyjoin-innerjoin-stringdist-cc-spots, eval=FALSE}
 
@@ -1172,7 +1160,7 @@ cc_spots_1$last4ccnum[duplicated(cc_spots_1$last4ccnum)] # Need to remove five d
 
 Given the data sources provided, identify potential informal or unofficial relationships among GASTech personnel. Provide evidence for these relationships. Please limit your response to 8 images and 500 words.
 
-#### 5.4.1 Elsa (ID: 7, black line) And Brand (ID: 33, blue line) Are Seeing Each Other  
+#### 5.4.1 Elsa (ID: 7, Black Line) And Brand (ID: 33, Blue Line) Are Seeing Each Other  
 
 Both were frequenting the following places together at similar times and for similar durations:
 - Chostus Hotel  
@@ -1235,6 +1223,77 @@ tm_shape(spots_median_sf %>%
           size = 0.2)
 
 Q5.4.2
+
+```
+
+#### 5.4.3 Bertrand (ID: 29, Black Line) And Linnea (ID: 6, Blue Line) Are Seeing Each Other  
+
+Although both are staying in the same housing together with Kanon, both seem to frequent the same coffee chain in the mornings and food outlet in the evenings together. Kanon was not present during these meal times.  
+- Coffee Cameleon   
+- Katerina's Cafe  
+
+```{r bertrand-linnea-couple}
+
+tmap_mode("view")
+
+
+Q5.4.3 <- tm_shape(sea_poly) +
+  tm_polygons(col="lightblue") +
+tm_shape(Kronos_sf_small) +
+  tm_polygons(col = "beige") +
+tm_shape(Abila_st_buffer) +
+  tm_polygons(col = "white") +
+tm_shape(gps_path %>% filter(id==29 & day !=19)) + # Extract Bertrand's path and removed 19th Jan since its single point throws an error in the linestring
+  tm_lines(col = "black",
+           lty = 1,
+           id = "RoleNName") +
+tm_shape(gps_path %>% filter(id==6)) + # Extract Linnea's path
+  tm_lines(col = "blue",
+           lty = 1,
+           id = "RoleNName") +  
+tm_shape(spots_median_sf) +
+  tm_dots(col = "Location.Type",
+          id = "Location", # Bold in group
+          popup.vars = "Location Type:" =="Location.Type",
+          size = 0.2)
+
+Q5.4.3
+
+```
+
+#### 5.4.4 Lidelse (ID: 14, Black Line) And Birgitta (ID: 18, Blue Line) Are Seeing Each Other  
+
+Similarly, although both are staying in the same housing together with Hennie, both seem to frequent the same coffee chains in the mornings and food outlets in the afternoon and evenings together. Hennie was not present during these meal times.  
+- Guy's Gyros  
+- Bean There Done That  
+- Katerina's Cafe  
+- Hallowed Grounds  
+
+```{r lidelse-birgitta-couple}
+
+tmap_mode("view")
+
+Q5.4.4 <- tm_shape(sea_poly) +
+  tm_polygons(col="lightblue") +
+tm_shape(Kronos_sf_small) +
+  tm_polygons(col = "beige") +
+tm_shape(Abila_st_buffer) +
+  tm_polygons(col = "white") +
+tm_shape(gps_path %>% filter(id==14)) + # Extract Lidelse's path
+  tm_lines(col = "black",
+           lty = 1,
+           id = "RoleNName") +
+tm_shape(gps_path %>% filter(id==18)) + # Extract Birgitta's path
+  tm_lines(col = "blue",
+           lty = 1,
+           id = "RoleNName") +  
+tm_shape(spots_median_sf) +
+  tm_dots(col = "Location.Type",
+          id = "Location", # Bold in group
+          popup.vars = "Location Type:" =="Location.Type",
+          size = 0.2)
+
+Q5.4.4
 
 ```
 
