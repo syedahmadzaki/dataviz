@@ -35,7 +35,7 @@ Student Team:  YES
 Rmarkdown  
 
 **Approximately how many hours were spent working on this submission in total?**  
-Provide an estimate of the total number of hours worked on this submission by your entire team.  
+~200 hours
 
 **May we post your submission in the Visual Analytics Benchmark Repository after VAST Challenge 2021 is complete?**  
 YES  
